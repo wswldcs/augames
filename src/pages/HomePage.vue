@@ -47,7 +47,25 @@
     <!-- 搜索和筛选区域 -->
     <section class="py-8 px-4">
       <div class="container mx-auto max-w-6xl">
-        <SearchBar />
+        <div class="flex flex-col md:flex-row gap-4 items-center justify-between mb-6">
+          <div class="flex-1 w-full md:w-auto">
+            <SearchBar />
+          </div>
+          <button
+            @click="showStats = !showStats"
+            class="btn-stats"
+          >
+            <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/>
+            </svg>
+            {{ showStats ? '隐藏统计' : '查看统计' }}
+          </button>
+        </div>
+
+        <!-- 统计面板 -->
+        <div v-if="showStats" class="mb-8">
+          <GameStats />
+        </div>
       </div>
     </section>
 
@@ -170,11 +188,13 @@ import { ref, computed, onMounted } from 'vue'
 import { useGameStore } from '../store'
 import GameCard from '../components/GameCard.vue'
 import SearchBar from '../components/SearchBar.vue'
+import GameStats from '../components/GameStats.vue'
 
 const gameStore = useGameStore()
 
 // 响应式数据
 const sortBy = ref('default')
+const showStats = ref(false)
 
 // 计算属性
 const sortedGames = computed(() => {
@@ -257,12 +277,17 @@ onMounted(async () => {
   }
 }
 
+/* 统计按钮样式 */
+.btn-stats {
+  @apply px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-lg transition-all duration-200 flex items-center whitespace-nowrap shadow-lg hover:shadow-xl transform hover:scale-105;
+}
+
 /* 响应式调整 */
 @media (max-width: 640px) {
   .stat-card {
     @apply p-3;
   }
-  
+
   .stat-card .text-2xl {
     @apply text-xl;
   }

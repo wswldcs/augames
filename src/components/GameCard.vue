@@ -49,6 +49,14 @@
       <p class="text-white/70 text-sm mb-3 line-clamp-2 leading-relaxed">
         {{ game.description }}
       </p>
+
+      <!-- 游玩统计 -->
+      <div class="text-xs text-white/60 mb-3 flex items-center">
+        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"/>
+        </svg>
+        <span>{{ getPlayCount() }} 次游玩</span>
+      </div>
       
       <!-- 标签 -->
       <div class="flex flex-wrap gap-1 mb-3">
@@ -155,9 +163,18 @@ const getMainControl = () => {
   return '点击查看控制说明'
 }
 
+const getPlayCount = () => {
+  const stats = JSON.parse(localStorage.getItem('gameHub_stats') || '{}')
+  return stats[props.game.id] || 0
+}
+
 // 方法
 const playGame = async () => {
   loading.value = true
+
+  // 增加游玩次数
+  incrementPlayCount()
+
   try {
     await router.push(`/play/${props.game.id}`)
   } catch (error) {
@@ -165,6 +182,12 @@ const playGame = async () => {
   } finally {
     loading.value = false
   }
+}
+
+const incrementPlayCount = () => {
+  const stats = JSON.parse(localStorage.getItem('gameHub_stats') || '{}')
+  stats[props.game.id] = (stats[props.game.id] || 0) + 1
+  localStorage.setItem('gameHub_stats', JSON.stringify(stats))
 }
 
 const handleImageError = () => {
