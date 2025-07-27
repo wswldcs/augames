@@ -1,0 +1,66 @@
+<svg width="300" height="200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8B4513;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#D2691E;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="floor" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#F5DEB3;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#DEB887;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="wall" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8B4513;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#654321;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="box" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#D2691E;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#A0522D;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="300" height="200" fill="url(#bg)"/>
+  
+  <!-- Game area background -->
+  <rect x="50" y="30" width="200" height="140" fill="url(#floor)"/>
+  
+  <!-- Walls -->
+  <rect x="50" y="30" width="200" height="20" fill="url(#wall)"/>
+  <rect x="50" y="150" width="200" height="20" fill="url(#wall)"/>
+  <rect x="50" y="30" width="20" height="140" fill="url(#wall)"/>
+  <rect x="230" y="30" width="20" height="140" fill="url(#wall)"/>
+  
+  <rect x="90" y="70" width="20" height="60" fill="url(#wall)"/>
+  <rect x="190" y="70" width="20" height="60" fill="url(#wall)"/>
+  <rect x="130" y="90" width="40" height="20" fill="url(#wall)"/>
+  
+  <!-- Target spots -->
+  <rect x="195" y="55" width="15" height="15" fill="#FFD700" opacity="0.7"/>
+  <rect x="195" y="135" width="15" height="15" fill="#FFD700" opacity="0.7"/>
+  <rect x="135" y="135" width="15" height="15" fill="#FFD700" opacity="0.7"/>
+  
+  <!-- Boxes -->
+  <rect x="115" y="55" width="15" height="15" fill="url(#box)" stroke="#8B4513" stroke-width="1"/>
+  <rect x="155" y="75" width="15" height="15" fill="url(#box)" stroke="#8B4513" stroke-width="1"/>
+  <rect x="175" y="115" width="15" height="15" fill="url(#box)" stroke="#8B4513" stroke-width="1"/>
+  
+  <!-- Box on target (different color) -->
+  <rect x="195" y="55" width="15" height="15" fill="#32CD32" stroke="#228B22" stroke-width="1"/>
+  
+  <!-- Player -->
+  <circle cx="82" cy="62" r="8" fill="#FF6347"/>
+  <circle cx="79" cy="59" r="1" fill="#000"/>
+  <circle cx="85" cy="59" r="1" fill="#000"/>
+  <path d="M 77,65 Q 82,68 87,65" stroke="#000" stroke-width="1" fill="none"/>
+  
+  <!-- Grid lines (subtle) -->
+  <defs>
+    <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#DDD" stroke-width="0.5" opacity="0.3"/>
+    </pattern>
+  </defs>
+  <rect x="50" y="30" width="200" height="140" fill="url(#grid)"/>
+  
+  <!-- Title -->
+  <text x="150" y="190" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="white">推箱子</text>
+</svg>

@@ -1,0 +1,187 @@
+[
+  {
+    "id": "simple-test",
+    "title": "测试游戏",
+    "description": "简单的测试游戏，用来验证iframe加载功能是否正常工作。",
+    "coverImage": "/games/simple-test/cover.svg",
+    "tags": ["测试", "简单", "HTML5"],
+    "type": "html5",
+    "path": "/games/simple-test/index.html",
+    "controls": [
+      { "key": "鼠标点击", "action": "点击按钮获得分数" }
+    ]
+  },
+  {
+    "id": "tetris-html5",
+    "title": "俄罗斯方块",
+    "description": "经典的俄罗斯方块游戏，HTML5版本。通过旋转和移动方块来消除完整的行。",
+    "coverImage": "/games/tetris/cover.svg",
+    "tags": ["经典", "益智", "HTML5", "休闲"],
+    "type": "html5",
+    "path": "/games/tetris/index.html",
+    "controls": [
+      { "key": "方向键左右", "action": "移动方块" },
+      { "key": "方向键下", "action": "快速下降" },
+      { "key": "方向键上", "action": "旋转方块" },
+      { "key": "空格键", "action": "暂停/继续" }
+    ]
+  },
+  {
+    "id": "snake-game",
+    "title": "贪吃蛇",
+    "description": "简单而上瘾的贪吃蛇游戏，HTML5制作。控制蛇吃食物并避免撞到自己。",
+    "coverImage": "/games/snake/cover.svg",
+    "tags": ["经典", "休闲", "HTML5", "街机"],
+    "type": "html5",
+    "path": "/games/snake/index.html",
+    "controls": [
+      { "key": "方向键", "action": "控制蛇的方向" },
+      { "key": "空格键", "action": "暂停/继续" },
+      { "key": "R", "action": "重新开始" }
+    ]
+  },
+  {
+    "id": "breakout-game",
+    "title": "打砖块",
+    "description": "经典的打砖块游戏，控制挡板反弹球来消除所有砖块。考验你的反应速度和策略。",
+    "coverImage": "/games/breakout/cover.svg",
+    "tags": ["经典", "街机", "HTML5", "反应"],
+    "type": "html5",
+    "path": "/games/breakout/index.html",
+    "controls": [
+      { "key": "鼠标移动", "action": "控制挡板" },
+      { "key": "鼠标点击", "action": "开始游戏" }
+    ]
+  },
+  {
+    "id": "space-shooter-game",
+    "title": "太空射击",
+    "description": "驾驶太空战机，消灭入侵的敌人。在无尽的太空中生存下去，获得最高分数。",
+    "coverImage": "/games/space-shooter/cover.svg",
+    "tags": ["射击", "动作", "HTML5", "太空"],
+    "type": "html5",
+    "path": "/games/space-shooter/index.html",
+    "controls": [
+      { "key": "WASD", "action": "移动飞船" },
+      { "key": "空格键", "action": "射击" }
+    ]
+  },
+  {
+    "id": "puzzle-15",
+    "title": "数字拼图",
+    "description": "经典的15数字拼图游戏，将打乱的数字按顺序排列。锻炼你的逻辑思维能力。",
+    "coverImage": "/games/puzzle/cover.svg",
+    "tags": ["益智", "逻辑", "HTML5", "数学"],
+    "type": "html5",
+    "path": "/games/puzzle/index.html",
+    "controls": [
+      { "key": "鼠标点击", "action": "移动数字块" },
+      { "key": "打乱按钮", "action": "重新开始" }
+    ]
+  },
+  {
+    "id": "2048-game",
+    "title": "2048",
+    "description": "流行的数字合并游戏，通过滑动方块合并相同数字，目标是达到2048。",
+    "coverImage": "/games/2048/cover.svg",
+    "tags": ["益智", "数字", "HTML5", "策略"],
+    "type": "html5",
+    "path": "/games/2048/index.html",
+    "controls": [
+      { "key": "方向键", "action": "移动方块" },
+      { "key": "WASD", "action": "移动方块" }
+    ]
+  },
+  {
+    "id": "minesweeper-game",
+    "title": "扫雷",
+    "description": "经典的扫雷游戏，通过数字提示找出所有地雷的位置。考验你的逻辑推理能力。",
+    "coverImage": "/games/minesweeper/cover.svg",
+    "tags": ["益智", "逻辑", "HTML5", "经典"],
+    "type": "html5",
+    "path": "/games/minesweeper/index.html",
+    "controls": [
+      { "key": "鼠标左键", "action": "挖掘方块" },
+      { "key": "鼠标右键", "action": "标记地雷" }
+    ]
+  },
+  {
+    "id": "match-game",
+    "title": "连连看",
+    "description": "找出相同的图案并将它们连接消除。在限定时间内清除所有方块。",
+    "coverImage": "/games/match/cover.svg",
+    "tags": ["益智", "记忆", "HTML5", "休闲"],
+    "type": "html5",
+    "path": "/games/match/index.html",
+    "controls": [
+      { "key": "鼠标点击", "action": "选择方块" },
+      { "key": "重新排列", "action": "打乱剩余方块" }
+    ]
+  },
+  {
+    "id": "pacman-game",
+    "title": "吃豆人",
+    "description": "经典的吃豆人游戏，在迷宫中吃掉所有豆子，避开彩色鬼魂的追捕。",
+    "coverImage": "/games/pacman/cover.svg",
+    "tags": ["经典", "街机", "HTML5", "动作"],
+    "type": "html5",
+    "path": "/games/pacman/index.html",
+    "controls": [
+      { "key": "方向键", "action": "控制吃豆人移动" },
+      { "key": "WASD", "action": "控制吃豆人移动" }
+    ]
+  },
+  {
+    "id": "frogger-game",
+    "title": "青蛙过河",
+    "description": "帮助青蛙安全穿越繁忙的道路和河流，避开车辆到达对岸。",
+    "coverImage": "/games/frogger/cover.svg",
+    "tags": ["经典", "动作", "HTML5", "反应"],
+    "type": "html5",
+    "path": "/games/frogger/index.html",
+    "controls": [
+      { "key": "方向键", "action": "控制青蛙移动" },
+      { "key": "WASD", "action": "控制青蛙移动" }
+    ]
+  },
+  {
+    "id": "sokoban-game",
+    "title": "推箱子",
+    "description": "经典的推箱子益智游戏，将所有箱子推到指定位置。考验你的策略思维。",
+    "coverImage": "/games/sokoban/cover.svg",
+    "tags": ["益智", "策略", "HTML5", "经典"],
+    "type": "html5",
+    "path": "/games/sokoban/index.html",
+    "controls": [
+      { "key": "方向键", "action": "推动箱子" },
+      { "key": "WASD", "action": "推动箱子" }
+    ]
+  },
+  {
+    "id": "worm-game",
+    "title": "贪吃虫",
+    "description": "增强版贪吃蛇游戏，包含特殊食物、障碍物等新元素，更具挑战性。",
+    "coverImage": "/games/worm/cover.svg",
+    "tags": ["动作", "街机", "HTML5", "挑战"],
+    "type": "html5",
+    "path": "/games/worm/index.html",
+    "controls": [
+      { "key": "方向键", "action": "控制贪吃虫移动" },
+      { "key": "WASD", "action": "控制贪吃虫移动" }
+    ]
+  },
+  {
+    "id": "plane-war-game",
+    "title": "飞机大战",
+    "description": "经典的飞机射击游戏，驾驶战机击毁敌机，在弹幕中生存下来。",
+    "coverImage": "/games/plane-war/cover.svg",
+    "tags": ["射击", "动作", "HTML5", "街机"],
+    "type": "html5",
+    "path": "/games/plane-war/index.html",
+    "controls": [
+      { "key": "方向键", "action": "控制飞机移动" },
+      { "key": "WASD", "action": "控制飞机移动" },
+      { "key": "自动射击", "action": "自动发射子弹" }
+    ]
+  }
+]

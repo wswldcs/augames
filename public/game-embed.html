@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>游戏嵌入页面</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000;
+            overflow: hidden;
+        }
+        
+        #gameFrame {
+            width: 100vw;
+            height: 100vh;
+            border: none;
+            display: block;
+        }
+        
+        .loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        
+        .error {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #ff6b6b;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="loading" class="loading">
+        <div>正在加载游戏...</div>
+    </div>
+    
+    <div id="error" class="error" style="display: none;">
+        <div>游戏加载失败</div>
+        <button onclick="retry()" style="margin-top: 10px; padding: 5px 10px;">重试</button>
+    </div>
+    
+    <iframe id="gameFrame" style="display: none;"></iframe>
+
+    <script>
+        function getGamePath() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('game');
+        }
+        
+        function loadGame() {
+            const gamePath = getGamePath();
+            if (!gamePath) {
+                showError('未指定游戏路径');
+                return;
+            }
+            
+            console.log('Loading game:', gamePath);
+            
+            const iframe = document.getElementById('gameFrame');
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+            
+            iframe.onload = function() {
+                console.log('Game loaded successfully');
+                loading.style.display = 'none';
+                error.style.display = 'none';
+                iframe.style.display = 'block';
+                
+                // 通知父窗口
+                if (window.parent !== window) {
+                    window.parent.postMessage('game-loaded', '*');
+                }
+            };
+            
+            iframe.onerror = function() {
+                console.log('Game loading failed');
+                showError('游戏加载失败');
+            };
+            
+            // 设置超时
+            setTimeout(() => {
+                if (iframe.style.display === 'none') {
+                    showError('游戏加载超时');
+                }
+            }, 10000);
+            
+            iframe.src = gamePath;
+        }
+        
+        function showError(message) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error').style.display = 'block';
+            document.getElementById('error').querySelector('div').textContent = message;
+        }
+        
+        function retry() {
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('gameFrame').style.display = 'none';
+            loadGame();
+        }
+        
+        // 页面加载时开始加载游戏
+        window.onload = loadGame;
+    </script>
+</body>
+</html>

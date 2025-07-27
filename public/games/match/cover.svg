@@ -1,0 +1,77 @@
+<svg width="300" height="200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ff9a9e;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#fecfef;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#fecfef;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="tile1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="tile2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f093fb;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f5576c;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="tile3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4facfe;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#00f2fe;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="selected" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffd700;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ffed4e;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="300" height="200" fill="url(#bg)"/>
+  
+  <!-- Game board background -->
+  <rect x="50" y="30" width="200" height="140" rx="10" fill="rgba(255, 255, 255, 0.1)"/>
+  
+  <!-- Game tiles -->
+  <!-- Row 1 -->
+  <rect x="60" y="40" width="35" height="35" rx="8" fill="url(#tile1)" stroke="#fff" stroke-width="2"/>
+  <text x="77.5" y="62" text-anchor="middle" font-family="Arial, sans-serif" font-size="20">🍎</text>
+  
+  <rect x="105" y="40" width="35" height="35" rx="8" fill="url(#tile2)" stroke="#fff" stroke-width="2"/>
+  <text x="122.5" y="62" text-anchor="middle" font-family="Arial, sans-serif" font-size="20">🍌</text>
+  
+  <rect x="150" y="40" width="35" height="35" rx="8" fill="url(#tile3)" stroke="#fff" stroke-width="2"/>
+  <text x="167.5" y="62" text-anchor="middle" font-family="Arial, sans-serif" font-size="20">🍇</text>
+  
+  <rect x="195" y="40" width="35" height="35" rx="8" fill="url(#tile1)" stroke="#fff" stroke-width="2"/>
+  <text x="212.5" y="62" text-anchor="middle" font-family="Arial, sans-serif" font-size="20">🍊</text>
+  
+  <!-- Row 2 -->
+  <rect x="60" y="85" width="35" height="35" rx="8" fill="url(#tile2)" stroke="#fff" stroke-width="2"/>
+  <text x="77.5" y="107" text-anchor="middle" font-family="Arial, sans-serif" font-size="20">🍓</text>
+  
+  <rect x="105" y="85" width="35" height="35" rx="8" fill="url(#selected)" stroke="#fff" stroke-width="2"/>
+  <text x="122.5" y="107" text-anchor="middle" font-family="Arial, sans-serif" font-size="20">🍎</text>
+  
+  <rect x="150" y="85" width="35" height="35" rx="8" fill="url(#tile3)" stroke="#fff" stroke-width="2"/>
+  <text x="167.5" y="107" text-anchor="middle" font-family="Arial, sans-serif" font-size="20">🥝</text>
+  
+  <rect x="195" y="85" width="35" height="35" rx="8" fill="url(#selected)" stroke="#fff" stroke-width="2"/>
+  <text x="212.5" y="107" text-anchor="middle" font-family="Arial, sans-serif" font-size="20">🍎</text>
+  
+  <!-- Row 3 -->
+  <rect x="60" y="130" width="35" height="35" rx="8" fill="url(#tile1)" stroke="#fff" stroke-width="2"/>
+  <text x="77.5" y="152" text-anchor="middle" font-family="Arial, sans-serif" font-size="20">🍑</text>
+  
+  <rect x="105" y="130" width="35" height="35" rx="8" fill="url(#tile2)" stroke="#fff" stroke-width="2"/>
+  <text x="122.5" y="152" text-anchor="middle" font-family="Arial, sans-serif" font-size="20">🍒</text>
+  
+  <rect x="150" y="130" width="35" height="35" rx="8" fill="url(#tile3)" stroke="#fff" stroke-width="2"/>
+  <text x="167.5" y="152" text-anchor="middle" font-family="Arial, sans-serif" font-size="20">🥭</text>
+  
+  <rect x="195" y="130" width="35" height="35" rx="8" fill="url(#tile1)" stroke="#fff" stroke-width="2"/>
+  <text x="212.5" y="152" text-anchor="middle" font-family="Arial, sans-serif" font-size="20">🍍</text>
+  
+  <!-- Connection line between selected tiles -->
+  <line x1="122.5" y1="102.5" x2="212.5" y2="102.5" stroke="#ffd700" stroke-width="3" stroke-dasharray="5,5"/>
+  
+  <!-- Title -->
+  <text x="150" y="190" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="white">连连看</text>
+</svg>

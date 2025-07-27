@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>飞机大战</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: white;
+        }
+        
+        .game-container {
+            text-align: center;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid #2a5298;
+        }
+        
+        h1 {
+            margin: 0 0 20px 0;
+            font-size: 2.5em;
+            color: #2a5298;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+        }
+        
+        .difficulty-selector {
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .difficulty-selector h3 {
+            margin-bottom: 15px;
+            color: white;
+        }
+        
+        .difficulty-btn {
+            background: #2a5298;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            margin: 0 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .difficulty-btn:hover {
+            background: #1e3c72;
+            transform: scale(1.05);
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        #gameCanvas {
+            border: 3px solid #2a5298;
+            background: linear-gradient(180deg, #000428 0%, #004e92 100%);
+            display: block;
+            margin: 0 auto;
+        }
+        
+        .info {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-around;
+            font-size: 1.2em;
+            color: #2a5298;
+        }
+        
+        .controls {
+            margin-top: 15px;
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+        
+        button {
+            background: #FF5722;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            margin: 5px;
+            transition: background 0.3s;
+        }
+        
+        button:hover {
+            background: #E64A19;
+        }
+        
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            display: none;
+            border: 3px solid #2a5298;
+        }
+        
+        .lives {
+            color: #FF5722;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>✈️ 飞机大战</h1>
+        
+        <!-- 难度选择 -->
+        <div class="difficulty-selector" id="difficultySelector">
+            <h3>选择难度:</h3>
+            <button onclick="startGame('easy')" class="difficulty-btn">简单 (少敌机)</button>
+            <button onclick="startGame('normal')" class="difficulty-btn">普通 (中等敌机)</button>
+            <button onclick="startGame('hard')" class="difficulty-btn">困难 (多敌机)</button>
+        </div>
+        
+        <canvas id="gameCanvas" width="600" height="800" class="hidden"></canvas>
+        
+        <div class="info hidden" id="gameInfo">
+            <div>分数: <span id="score">0</span></div>
+            <div class="lives">生命: <span id="lives">3</span></div>
+            <div>难度: <span id="difficulty">普通</span></div>
+        </div>
+        
+        <div class="controls hidden" id="gameControls">
+            使用方向键或WASD控制飞机移动，自动射击
+            <br>
+            击毁敌机获得分数，避免碰撞！
+            <br>
+            <button onclick="resetGame()">重新开始</button>
+        </div>
+        
+        <div class="game-over" id="gameOver">
+            <h2 id="gameOverText">游戏结束</h2>
+            <p>最终分数: <span id="finalScore">0</span></p>
+            <button onclick="resetGame()">重新开始</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const difficultySelector = document.getElementById('difficultySelector');
+        const gameInfo = document.getElementById('gameInfo');
+        const gameControls = document.getElementById('gameControls');
+        const difficultyElement = document.getElementById('difficulty');
+        const scoreElement = document.getElementById('score');
+        const livesElement = document.getElementById('lives');
+        const gameOverElement = document.getElementById('gameOver');
+        const gameOverText = document.getElementById('gameOverText');
+        const finalScoreElement = document.getElementById('finalScore');
+
+        let player = {
+            x: canvas.width / 2 - 25,
+            y: canvas.height - 80,
+            width: 50,
+            height: 60,
+            speed: 5
+        };
+        
+        let bullets = [];
+        let enemies = [];
+        let explosions = [];
+        let score = 0;
+        let lives = 3;
+        let gameRunning = false;
+        let difficulty = 'normal';
+        let enemySpawnRate = 0.02;
+        let autoShootTimer = 0;
+        let keys = {};
+
+        function startGame(selectedDifficulty = 'normal') {
+            difficulty = selectedDifficulty;
+            
+            // 设置难度参数
+            switch(difficulty) {
+                case 'easy':
+                    enemySpawnRate = 0.015;
+                    difficultyElement.textContent = '简单';
+                    break;
+                case 'normal':
+                    enemySpawnRate = 0.02;
+                    difficultyElement.textContent = '普通';
+                    break;
+                case 'hard':
+                    enemySpawnRate = 0.03;
+                    difficultyElement.textContent = '困难';
+                    break;
+            }
+            
+            // 隐藏难度选择，显示游戏界面
+            difficultySelector.classList.add('hidden');
+            canvas.classList.remove('hidden');
+            gameInfo.classList.remove('hidden');
+            gameControls.classList.remove('hidden');
+            
+            initGame();
+        }
+
+        function initGame() {
+            player.x = canvas.width / 2 - 25;
+            player.y = canvas.height - 80;
+            bullets = [];
+            enemies = [];
+            explosions = [];
+            score = 0;
+            lives = 3;
+            gameRunning = true;
+            autoShootTimer = 0;
+            gameOverElement.style.display = 'none';
+            
+            updateDisplay();
+            gameLoop();
+        }
+
+        function gameLoop() {
+            if (!gameRunning) return;
+            
+            update();
+            draw();
+            
+            requestAnimationFrame(gameLoop);
+        }
+
+        function update() {
+            // 移动玩家
+            if (keys['ArrowLeft'] || keys['a'] || keys['A']) {
+                player.x = Math.max(0, player.x - player.speed);
+            }
+            if (keys['ArrowRight'] || keys['d'] || keys['D']) {
+                player.x = Math.min(canvas.width - player.width, player.x + player.speed);
+            }
+            if (keys['ArrowUp'] || keys['w'] || keys['W']) {
+                player.y = Math.max(0, player.y - player.speed);
+            }
+            if (keys['ArrowDown'] || keys['s'] || keys['S']) {
+                player.y = Math.min(canvas.height - player.height, player.y + player.speed);
+            }
+            
+            // 自动射击
+            autoShootTimer++;
+            if (autoShootTimer >= 10) {
+                bullets.push({
+                    x: player.x + player.width / 2 - 2,
+                    y: player.y,
+                    width: 4,
+                    height: 10,
+                    speed: 8
+                });
+                autoShootTimer = 0;
+            }
+            
+            // 更新子弹
+            bullets = bullets.filter(bullet => {
+                bullet.y -= bullet.speed;
+                return bullet.y > -bullet.height;
+            });
+            
+            // 生成敌机
+            if (Math.random() < enemySpawnRate) {
+                enemies.push({
+                    x: Math.random() * (canvas.width - 40),
+                    y: -40,
+                    width: 40,
+                    height: 40,
+                    speed: 2 + Math.random() * 2,
+                    color: `hsl(${Math.random() * 60}, 70%, 50%)`
+                });
+            }
+            
+            // 更新敌机
+            enemies = enemies.filter(enemy => {
+                enemy.y += enemy.speed;
+                return enemy.y < canvas.height + enemy.height;
+            });
+            
+            // 检查子弹与敌机碰撞
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                for (let j = enemies.length - 1; j >= 0; j--) {
+                    if (checkCollision(bullets[i], enemies[j])) {
+                        // 创建爆炸效果
+                        explosions.push({
+                            x: enemies[j].x + enemies[j].width / 2,
+                            y: enemies[j].y + enemies[j].height / 2,
+                            radius: 0,
+                            maxRadius: 30,
+                            life: 20
+                        });
+                        
+                        bullets.splice(i, 1);
+                        enemies.splice(j, 1);
+                        score += 10;
+                        updateDisplay();
+                        break;
+                    }
+                }
+            }
+            
+            // 检查玩家与敌机碰撞
+            for (let i = enemies.length - 1; i >= 0; i--) {
+                if (checkCollision(player, enemies[i])) {
+                    enemies.splice(i, 1);
+                    lives--;
+                    updateDisplay();
+                    
+                    // 创建爆炸效果
+                    explosions.push({
+                        x: player.x + player.width / 2,
+                        y: player.y + player.height / 2,
+                        radius: 0,
+                        maxRadius: 50,
+                        life: 30
+                    });
+                    
+                    if (lives <= 0) {
+                        gameOver();
+                    }
+                }
+            }
+            
+            // 更新爆炸效果
+            explosions = explosions.filter(explosion => {
+                explosion.radius += explosion.maxRadius / explosion.life;
+                explosion.life--;
+                return explosion.life > 0;
+            });
+        }
+
+        function checkCollision(rect1, rect2) {
+            return rect1.x < rect2.x + rect2.width &&
+                   rect1.x + rect1.width > rect2.x &&
+                   rect1.y < rect2.y + rect2.height &&
+                   rect1.y + rect1.height > rect2.y;
+        }
+
+        function draw() {
+            // 清空画布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制星空背景
+            ctx.fillStyle = '#FFF';
+            for (let i = 0; i < 100; i++) {
+                const x = (i * 37) % canvas.width;
+                const y = (i * 73 + Date.now() * 0.1) % canvas.height;
+                ctx.fillRect(x, y, 1, 1);
+            }
+            
+            // 绘制玩家飞机
+            ctx.fillStyle = '#00FF00';
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+            
+            // 飞机细节
+            ctx.fillStyle = '#0080FF';
+            ctx.fillRect(player.x + 10, player.y + 10, 30, 20);
+            ctx.fillRect(player.x + 20, player.y, 10, 40);
+            
+            // 绘制子弹
+            ctx.fillStyle = '#FFFF00';
+            bullets.forEach(bullet => {
+                ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+            });
+            
+            // 绘制敌机
+            enemies.forEach(enemy => {
+                ctx.fillStyle = enemy.color;
+                ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+                
+                // 敌机细节
+                ctx.fillStyle = '#FF0000';
+                ctx.fillRect(enemy.x + 5, enemy.y + 5, 30, 15);
+                ctx.fillRect(enemy.x + 15, enemy.y, 10, 25);
+            });
+            
+            // 绘制爆炸效果
+            explosions.forEach(explosion => {
+                const alpha = explosion.life / 20;
+                ctx.globalAlpha = alpha;
+                ctx.fillStyle = '#FF4500';
+                ctx.beginPath();
+                ctx.arc(explosion.x, explosion.y, explosion.radius, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.fillStyle = '#FFFF00';
+                ctx.beginPath();
+                ctx.arc(explosion.x, explosion.y, explosion.radius * 0.6, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.globalAlpha = 1;
+            });
+        }
+
+        function updateDisplay() {
+            scoreElement.textContent = score;
+            livesElement.textContent = lives;
+        }
+
+        function gameOver() {
+            gameRunning = false;
+            finalScoreElement.textContent = score;
+            gameOverElement.style.display = 'block';
+        }
+
+        function resetGame() {
+            initGame();
+        }
+
+        // 键盘事件
+        document.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+        });
+
+        document.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+        });
+
+        // 游戏通过难度选择按钮启动
+    </script>
+</body>
+</html>

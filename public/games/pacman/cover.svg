@@ -1,0 +1,65 @@
+<svg width="300" height="200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e3c72;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2a5298;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="300" height="200" fill="url(#bg)"/>
+  
+  <!-- Maze background -->
+  <rect x="30" y="30" width="240" height="140" rx="10" fill="#000"/>
+  
+  <!-- Maze walls -->
+  <rect x="40" y="40" width="20" height="60" fill="#0000ff"/>
+  <rect x="80" y="40" width="20" height="20" fill="#0000ff"/>
+  <rect x="120" y="40" width="60" height="20" fill="#0000ff"/>
+  <rect x="200" y="40" width="20" height="20" fill="#0000ff"/>
+  <rect x="240" y="40" width="20" height="60" fill="#0000ff"/>
+  
+  <rect x="40" y="120" width="20" height="40" fill="#0000ff"/>
+  <rect x="80" y="140" width="20" height="20" fill="#0000ff"/>
+  <rect x="120" y="140" width="60" height="20" fill="#0000ff"/>
+  <rect x="200" y="140" width="20" height="20" fill="#0000ff"/>
+  <rect x="240" y="120" width="20" height="40" fill="#0000ff"/>
+  
+  <!-- Dots -->
+  <circle cx="70" cy="80" r="3" fill="#ffff00"/>
+  <circle cx="110" cy="80" r="3" fill="#ffff00"/>
+  <circle cx="150" cy="80" r="3" fill="#ffff00"/>
+  <circle cx="190" cy="80" r="3" fill="#ffff00"/>
+  <circle cx="230" cy="80" r="3" fill="#ffff00"/>
+  
+  <circle cx="70" cy="120" r="3" fill="#ffff00"/>
+  <circle cx="110" cy="120" r="3" fill="#ffff00"/>
+  <circle cx="190" cy="120" r="3" fill="#ffff00"/>
+  <circle cx="230" cy="120" r="3" fill="#ffff00"/>
+  
+  <!-- Pacman -->
+  <g transform="translate(150, 100)">
+    <circle cx="0" cy="0" r="15" fill="#ffff00"/>
+    <path d="M 0,0 L 12,8 A 15,15 0 0,1 12,-8 Z" fill="#000"/>
+  </g>
+  
+  <!-- Ghosts -->
+  <g transform="translate(90, 100)">
+    <path d="M -10,-10 A 10,10 0 0,1 10,-10 L 10,8 L 5,3 L 0,8 L -5,3 L -10,8 Z" fill="#ff0000"/>
+    <circle cx="-4" cy="-4" r="2" fill="#fff"/>
+    <circle cx="4" cy="-4" r="2" fill="#fff"/>
+    <circle cx="-4" cy="-4" r="1" fill="#000"/>
+    <circle cx="4" cy="-4" r="1" fill="#000"/>
+  </g>
+  
+  <g transform="translate(210, 100)">
+    <path d="M -10,-10 A 10,10 0 0,1 10,-10 L 10,8 L 5,3 L 0,8 L -5,3 L -10,8 Z" fill="#ffb8ff"/>
+    <circle cx="-4" cy="-4" r="2" fill="#fff"/>
+    <circle cx="4" cy="-4" r="2" fill="#fff"/>
+    <circle cx="-4" cy="-4" r="1" fill="#000"/>
+    <circle cx="4" cy="-4" r="1" fill="#000"/>
+  </g>
+  
+  <!-- Title -->
+  <text x="150" y="190" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="white">吃豆人</text>
+</svg>
