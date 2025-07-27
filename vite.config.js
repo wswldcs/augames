@@ -25,6 +25,8 @@ export default defineConfig({
         },
       },
     },
+    // 添加编码设置
+    charset: 'utf8',
   },
   base: './',
 })
