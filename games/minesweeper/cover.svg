@@ -1,0 +1,98 @@
+<svg width="300" height="200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2c3e50;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#34495e;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="cell" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#bdc3c7;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#95a5a6;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="revealed" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ecf0f1;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#bdc3c7;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="mine" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#e74c3c;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#c0392b;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="300" height="200" fill="url(#bg)"/>
+  
+  <!-- Mine field background -->
+  <rect x="50" y="30" width="200" height="140" rx="10" fill="#7f8c8d"/>
+  
+  <!-- Mine field cells -->
+  <!-- Row 1 -->
+  <rect x="60" y="40" width="20" height="20" fill="url(#cell)" stroke="#7f8c8d" stroke-width="1"/>
+  <rect x="85" y="40" width="20" height="20" fill="url(#revealed)" stroke="#7f8c8d" stroke-width="1"/>
+  <text x="95" y="54" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#3498db">1</text>
+  <rect x="110" y="40" width="20" height="20" fill="url(#revealed)" stroke="#7f8c8d" stroke-width="1"/>
+  <text x="120" y="54" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#27ae60">2</text>
+  <rect x="135" y="40" width="20" height="20" fill="url(#cell)" stroke="#7f8c8d" stroke-width="1"/>
+  <rect x="160" y="40" width="20" height="20" fill="url(#cell)" stroke="#7f8c8d" stroke-width="1"/>
+  <rect x="185" y="40" width="20" height="20" fill="url(#revealed)" stroke="#7f8c8d" stroke-width="1"/>
+  <text x="195" y="54" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#3498db">1</text>
+  <rect x="210" y="40" width="20" height="20" fill="url(#cell)" stroke="#7f8c8d" stroke-width="1"/>
+  <rect x="235" y="40" width="20" height="20" fill="url(#cell)" stroke="#7f8c8d" stroke-width="1"/>
+  
+  <!-- Row 2 -->
+  <rect x="60" y="65" width="20" height="20" fill="url(#cell)" stroke="#7f8c8d" stroke-width="1"/>
+  <rect x="85" y="65" width="20" height="20" fill="url(#revealed)" stroke="#7f8c8d" stroke-width="1"/>
+  <text x="95" y="79" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#e74c3c">3</text>
+  <rect x="110" y="65" width="20" height="20" fill="url(#mine)" stroke="#7f8c8d" stroke-width="1"/>
+  <text x="120" y="79" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="white">💣</text>
+  <rect x="135" y="65" width="20" height="20" fill="url(#revealed)" stroke="#7f8c8d" stroke-width="1"/>
+  <text x="145" y="79" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#e74c3c">3</text>
+  <rect x="160" y="65" width="20" height="20" fill="url(#cell)" stroke="#7f8c8d" stroke-width="1"/>
+  <rect x="185" y="65" width="20" height="20" fill="url(#revealed)" stroke="#7f8c8d" stroke-width="1"/>
+  <text x="195" y="79" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#27ae60">2</text>
+  <rect x="210" y="65" width="20" height="20" fill="url(#cell)" stroke="#7f8c8d" stroke-width="1"/>
+  <rect x="235" y="65" width="20" height="20" fill="url(#cell)" stroke="#7f8c8d" stroke-width="1"/>
+  
+  <!-- Row 3 -->
+  <rect x="60" y="90" width="20" height="20" fill="url(#cell)" stroke="#7f8c8d" stroke-width="1"/>
+  <rect x="85" y="90" width="20" height="20" fill="url(#revealed)" stroke="#7f8c8d" stroke-width="1"/>
+  <text x="95" y="104" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#27ae60">2</text>
+  <rect x="110" y="90" width="20" height="20" fill="url(#revealed)" stroke="#7f8c8d" stroke-width="1"/>
+  <text x="120" y="104" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#3498db">1</text>
+  <rect x="135" y="90" width="20" height="20" fill="url(#revealed)" stroke="#7f8c8d" stroke-width="1"/>
+  <text x="145" y="104" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#3498db">1</text>
+  <rect x="160" y="90" width="20" height="20" fill="url(#cell)" stroke="#7f8c8d" stroke-width="1"/>
+  <rect x="185" y="90" width="20" height="20" fill="url(#revealed)" stroke="#7f8c8d" stroke-width="1"/>
+  <text x="195" y="104" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#3498db">1</text>
+  <rect x="210" y="90" width="20" height="20" fill="url(#cell)" stroke="#7f8c8d" stroke-width="1"/>
+  <rect x="235" y="90" width="20" height="20" fill="url(#cell)" stroke="#7f8c8d" stroke-width="1"/>
+  
+  <!-- Row 4 -->
+  <rect x="60" y="115" width="20" height="20" fill="url(#cell)" stroke="#7f8c8d" stroke-width="1"/>
+  <rect x="85" y="115" width="20" height="20" fill="url(#cell)" stroke="#7f8c8d" stroke-width="1"/>
+  <rect x="110" y="115" width="20" height="20" fill="url(#cell)" stroke="#7f8c8d" stroke-width="1"/>
+  <rect x="135" y="115" width="20" height="20" fill="url(#cell)" stroke="#7f8c8d" stroke-width="1"/>
+  <rect x="160" y="115" width="20" height="20" fill="url(#cell)" stroke="#7f8c8d" stroke-width="1"/>
+  <rect x="185" y="115" width="20" height="20" fill="url(#cell)" stroke="#7f8c8d" stroke-width="1"/>
+  <rect x="210" y="115" width="20" height="20" fill="url(#cell)" stroke="#7f8c8d" stroke-width="1"/>
+  <rect x="235" y="115" width="20" height="20" fill="url(#cell)" stroke="#7f8c8d" stroke-width="1"/>
+  
+  <!-- Row 5 -->
+  <rect x="60" y="140" width="20" height="20" fill="url(#cell)" stroke="#7f8c8d" stroke-width="1"/>
+  <rect x="85" y="140" width="20" height="20" fill="url(#cell)" stroke="#7f8c8d" stroke-width="1"/>
+  <rect x="110" y="140" width="20" height="20" fill="url(#cell)" stroke="#7f8c8d" stroke-width="1"/>
+  <rect x="135" y="140" width="20" height="20" fill="url(#cell)" stroke="#7f8c8d" stroke-width="1"/>
+  <rect x="160" y="140" width="20" height="20" fill="url(#cell)" stroke="#7f8c8d" stroke-width="1"/>
+  <rect x="185" y="140" width="20" height="20" fill="url(#cell)" stroke="#7f8c8d" stroke-width="1"/>
+  <rect x="210" y="140" width="20" height="20" fill="url(#cell)" stroke="#7f8c8d" stroke-width="1"/>
+  <rect x="235" y="140" width="20" height="20" fill="url(#cell)" stroke="#7f8c8d" stroke-width="1"/>
+  
+  <!-- Flagged cells -->
+  <rect x="60" y="40" width="20" height="20" fill="#f39c12" stroke="#7f8c8d" stroke-width="1"/>
+  <text x="70" y="54" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="white">🚩</text>
+  
+  <rect x="135" y="40" width="20" height="20" fill="#f39c12" stroke="#7f8c8d" stroke-width="1"/>
+  <text x="145" y="54" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="white">🚩</text>
+  
+  <!-- Title -->
+  <text x="150" y="190" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="white">扫雷</text>
+</svg>

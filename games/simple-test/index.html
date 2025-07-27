@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>简单测试游戏</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: white;
+        }
+        
+        .game-container {
+            text-align: center;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 400px;
+        }
+        
+        h1 {
+            margin: 0 0 20px 0;
+            font-size: 2em;
+        }
+        
+        .game-area {
+            background: white;
+            color: black;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        button {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            margin: 5px;
+        }
+        
+        button:hover {
+            background: #ff5252;
+        }
+        
+        .score {
+            font-size: 1.2em;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🎮 简单测试游戏</h1>
+        <div class="game-area">
+            <div class="score">分数: <span id="score">0</span></div>
+            <div class="score">点击次数: <span id="clicks">0</span></div>
+            <button onclick="clickGame()">点击我！</button>
+            <button onclick="resetGame()">重置</button>
+        </div>
+        <p>这是一个简单的测试游戏，用来验证iframe加载是否正常工作。</p>
+        <p>如果你能看到这个页面并且按钮可以点击，说明游戏加载成功！</p>
+    </div>
+
+    <script>
+        let score = 0;
+        let clicks = 0;
+        
+        function clickGame() {
+            clicks++;
+            score += Math.floor(Math.random() * 10) + 1;
+            updateDisplay();
+            
+            // 添加一些视觉反馈
+            const button = event.target;
+            button.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                button.style.transform = 'scale(1)';
+            }, 100);
+        }
+        
+        function resetGame() {
+            score = 0;
+            clicks = 0;
+            updateDisplay();
+        }
+        
+        function updateDisplay() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('clicks').textContent = clicks;
+        }
+        
+        // 页面加载完成时的日志
+        console.log('Simple test game loaded successfully');
+        console.log('Current URL:', window.location.href);
+        
+        // 通知父窗口游戏已加载（如果在iframe中）
+        if (window.parent !== window) {
+            console.log('Game is running in iframe');
+            window.parent.postMessage('game-loaded', '*');
+        }
+    </script>
+</body>
+</html>

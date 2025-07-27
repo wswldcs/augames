@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>青蛙过河</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: white;
+        }
+        
+        .game-container {
+            text-align: center;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid #4CAF50;
+        }
+        
+        h1 {
+            margin: 0 0 20px 0;
+            font-size: 2.5em;
+            color: #4CAF50;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+        }
+        
+        .difficulty-selector {
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .difficulty-selector h3 {
+            margin-bottom: 15px;
+            color: white;
+        }
+        
+        .difficulty-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            margin: 0 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .difficulty-btn:hover {
+            background: #45a049;
+            transform: scale(1.05);
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        #gameCanvas {
+            border: 3px solid #4CAF50;
+            background: #87CEEB;
+            display: block;
+            margin: 0 auto;
+        }
+        
+        .info {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-around;
+            font-size: 1.2em;
+            color: #4CAF50;
+        }
+        
+        .controls {
+            margin-top: 15px;
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+        
+        button {
+            background: #ff5722;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            margin: 5px;
+            transition: background 0.3s;
+        }
+        
+        button:hover {
+            background: #e64a19;
+        }
+        
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            display: none;
+            border: 3px solid #4CAF50;
+        }
+        
+        .lives {
+            color: #ff5722;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🐸 青蛙过河</h1>
+        
+        <!-- 难度选择 -->
+        <div class="difficulty-selector" id="difficultySelector">
+            <h3>选择难度:</h3>
+            <button onclick="startGame('easy')" class="difficulty-btn">简单 (慢速车辆)</button>
+            <button onclick="startGame('normal')" class="difficulty-btn">普通 (中速车辆)</button>
+            <button onclick="startGame('hard')" class="difficulty-btn">困难 (快速车辆)</button>
+        </div>
+        
+        <canvas id="gameCanvas" width="600" height="600" class="hidden"></canvas>
+        
+        <div class="info hidden" id="gameInfo">
+            <div>分数: <span id="score">0</span></div>
+            <div class="lives">生命: <span id="lives">3</span></div>
+            <div>难度: <span id="difficulty">普通</span></div>
+        </div>
+        
+        <div class="controls hidden" id="gameControls">
+            使用方向键或WASD控制青蛙移动
+            <br>
+            避开车辆，安全到达对岸！
+            <br>
+            <button onclick="resetGame()">重新开始</button>
+        </div>
+        
+        <div class="game-over" id="gameOver">
+            <h2 id="gameOverText">游戏结束</h2>
+            <p>最终分数: <span id="finalScore">0</span></p>
+            <button onclick="resetGame()">重新开始</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const difficultySelector = document.getElementById('difficultySelector');
+        const gameInfo = document.getElementById('gameInfo');
+        const gameControls = document.getElementById('gameControls');
+        const difficultyElement = document.getElementById('difficulty');
+        const scoreElement = document.getElementById('score');
+        const livesElement = document.getElementById('lives');
+        const gameOverElement = document.getElementById('gameOver');
+        const gameOverText = document.getElementById('gameOverText');
+        const finalScoreElement = document.getElementById('finalScore');
+
+        const CELL_SIZE = 40;
+        const ROWS = 15;
+        const COLS = 15;
+        
+        let frog = { x: 7, y: 14 };
+        let cars = [];
+        let score = 0;
+        let lives = 3;
+        let gameRunning = false;
+        let difficulty = 'normal';
+        let carSpeed = 2;
+
+        function startGame(selectedDifficulty = 'normal') {
+            difficulty = selectedDifficulty;
+            
+            // 设置难度参数
+            switch(difficulty) {
+                case 'easy':
+                    carSpeed = 1;
+                    difficultyElement.textContent = '简单';
+                    break;
+                case 'normal':
+                    carSpeed = 2;
+                    difficultyElement.textContent = '普通';
+                    break;
+                case 'hard':
+                    carSpeed = 3;
+                    difficultyElement.textContent = '困难';
+                    break;
+            }
+            
+            // 隐藏难度选择，显示游戏界面
+            difficultySelector.classList.add('hidden');
+            canvas.classList.remove('hidden');
+            gameInfo.classList.remove('hidden');
+            gameControls.classList.remove('hidden');
+            
+            initGame();
+        }
+
+        function initGame() {
+            frog = { x: 7, y: 14 };
+            cars = [];
+            score = 0;
+            lives = 3;
+            gameRunning = true;
+            gameOverElement.style.display = 'none';
+            
+            // 初始化车辆
+            initCars();
+            
+            updateDisplay();
+            gameLoop();
+        }
+
+        function initCars() {
+            cars = [];
+            
+            // 创建不同行的车辆
+            for (let row = 2; row < 13; row++) {
+                if (row === 7) continue; // 中间安全区
+                
+                const direction = row % 2 === 0 ? 1 : -1; // 奇偶行方向不同
+                const numCars = Math.floor(Math.random() * 3) + 2;
+                
+                for (let i = 0; i < numCars; i++) {
+                    cars.push({
+                        x: direction === 1 ? -i * 4 - Math.random() * 5 : COLS + i * 4 + Math.random() * 5,
+                        y: row,
+                        direction: direction,
+                        speed: carSpeed * (0.5 + Math.random() * 0.5),
+                        color: `hsl(${Math.random() * 360}, 70%, 50%)`
+                    });
+                }
+            }
+        }
+
+        function gameLoop() {
+            if (!gameRunning) return;
+            
+            update();
+            draw();
+            
+            setTimeout(() => {
+                requestAnimationFrame(gameLoop);
+            }, 50);
+        }
+
+        function update() {
+            // 移动车辆
+            cars.forEach(car => {
+                car.x += car.direction * car.speed * 0.1;
+                
+                // 重置超出边界的车辆
+                if (car.direction === 1 && car.x > COLS + 2) {
+                    car.x = -2 - Math.random() * 3;
+                } else if (car.direction === -1 && car.x < -2) {
+                    car.x = COLS + 2 + Math.random() * 3;
+                }
+            });
+            
+            // 检查碰撞
+            checkCollisions();
+            
+            // 检查胜利条件
+            if (frog.y <= 0) {
+                score += 100;
+                frog.x = 7;
+                frog.y = 14;
+                updateDisplay();
+            }
+        }
+
+        function checkCollisions() {
+            cars.forEach(car => {
+                const distance = Math.sqrt(
+                    Math.pow(frog.x - car.x, 2) + Math.pow(frog.y - car.y, 2)
+                );
+                
+                if (distance < 0.8) {
+                    lives--;
+                    updateDisplay();
+                    
+                    if (lives <= 0) {
+                        gameOverText.textContent = '游戏结束';
+                        endGame();
+                    } else {
+                        // 重置青蛙位置
+                        frog.x = 7;
+                        frog.y = 14;
+                    }
+                }
+            });
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制背景
+            for (let row = 0; row < ROWS; row++) {
+                for (let col = 0; col < COLS; col++) {
+                    const x = col * CELL_SIZE;
+                    const y = row * CELL_SIZE;
+                    
+                    if (row === 0) {
+                        // 目标区域
+                        ctx.fillStyle = '#4CAF50';
+                    } else if (row === 7 || row === 14) {
+                        // 安全区域
+                        ctx.fillStyle = '#8BC34A';
+                    } else {
+                        // 道路
+                        ctx.fillStyle = '#424242';
+                    }
+                    
+                    ctx.fillRect(x, y, CELL_SIZE, CELL_SIZE);
+                    
+                    // 绘制道路标线
+                    if (row > 1 && row < 13 && row !== 7) {
+                        ctx.fillStyle = '#FFEB3B';
+                        if (col % 2 === 0) {
+                            ctx.fillRect(x + CELL_SIZE/2 - 1, y + CELL_SIZE/2 - 1, 2, 2);
+                        }
+                    }
+                }
+            }
+            
+            // 绘制车辆
+            cars.forEach(car => {
+                ctx.fillStyle = car.color;
+                const x = car.x * CELL_SIZE;
+                const y = car.y * CELL_SIZE;
+                ctx.fillRect(x, y + 5, CELL_SIZE * 1.5, CELL_SIZE - 10);
+                
+                // 车轮
+                ctx.fillStyle = '#000';
+                ctx.fillRect(x + 5, y + 2, 8, 6);
+                ctx.fillRect(x + 5, y + CELL_SIZE - 8, 8, 6);
+                ctx.fillRect(x + CELL_SIZE + 5, y + 2, 8, 6);
+                ctx.fillRect(x + CELL_SIZE + 5, y + CELL_SIZE - 8, 8, 6);
+            });
+            
+            // 绘制青蛙
+            ctx.fillStyle = '#4CAF50';
+            const frogX = frog.x * CELL_SIZE + CELL_SIZE / 2;
+            const frogY = frog.y * CELL_SIZE + CELL_SIZE / 2;
+            
+            // 青蛙身体
+            ctx.beginPath();
+            ctx.arc(frogX, frogY, CELL_SIZE / 3, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 青蛙眼睛
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(frogX - 5, frogY - 5, 3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(frogX + 5, frogY - 5, 3, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function updateDisplay() {
+            scoreElement.textContent = score;
+            livesElement.textContent = lives;
+        }
+
+        function endGame() {
+            gameRunning = false;
+            finalScoreElement.textContent = score;
+            gameOverElement.style.display = 'block';
+        }
+
+        function resetGame() {
+            initGame();
+        }
+
+        // 键盘控制
+        document.addEventListener('keydown', (e) => {
+            if (!gameRunning) return;
+            
+            let newX = frog.x;
+            let newY = frog.y;
+            
+            switch(e.key) {
+                case 'ArrowUp':
+                case 'w':
+                case 'W':
+                    newY--;
+                    break;
+                case 'ArrowDown':
+                case 's':
+                case 'S':
+                    newY++;
+                    break;
+                case 'ArrowLeft':
+                case 'a':
+                case 'A':
+                    newX--;
+                    break;
+                case 'ArrowRight':
+                case 'd':
+                case 'D':
+                    newX++;
+                    break;
+            }
+            
+            // 检查边界
+            if (newX >= 0 && newX < COLS && newY >= 0 && newY < ROWS) {
+                frog.x = newX;
+                frog.y = newY;
+                
+                // 移动得分
+                if (newY < frog.y) {
+                    score += 10;
+                    updateDisplay();
+                }
+            }
+        });
+
+        // 游戏通过难度选择按钮启动
+    </script>
+</body>
+</html>

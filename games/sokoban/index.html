@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>推箱子</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #8B4513 0%, #D2691E 100%);
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: white;
+        }
+        
+        .game-container {
+            text-align: center;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid #D2691E;
+        }
+        
+        h1 {
+            margin: 0 0 20px 0;
+            font-size: 2.5em;
+            color: #D2691E;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+        }
+        
+        .difficulty-selector {
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .difficulty-selector h3 {
+            margin-bottom: 15px;
+            color: white;
+        }
+        
+        .difficulty-btn {
+            background: #D2691E;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            margin: 0 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .difficulty-btn:hover {
+            background: #CD853F;
+            transform: scale(1.05);
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        #gameCanvas {
+            border: 3px solid #D2691E;
+            background: #F5DEB3;
+            display: block;
+            margin: 0 auto;
+        }
+        
+        .info {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-around;
+            font-size: 1.2em;
+            color: #D2691E;
+        }
+        
+        .controls {
+            margin-top: 15px;
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+        
+        button {
+            background: #8B4513;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            margin: 5px;
+            transition: background 0.3s;
+        }
+        
+        button:hover {
+            background: #A0522D;
+        }
+        
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            display: none;
+            border: 3px solid #D2691E;
+        }
+        
+        .level-info {
+            color: #FFD700;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>📦 推箱子</h1>
+        
+        <!-- 难度选择 -->
+        <div class="difficulty-selector" id="difficultySelector">
+            <h3>选择难度:</h3>
+            <button onclick="startGame('easy')" class="difficulty-btn">简单 (小关卡)</button>
+            <button onclick="startGame('normal')" class="difficulty-btn">普通 (中等关卡)</button>
+            <button onclick="startGame('hard')" class="difficulty-btn">困难 (复杂关卡)</button>
+        </div>
+        
+        <canvas id="gameCanvas" width="600" height="600" class="hidden"></canvas>
+        
+        <div class="info hidden" id="gameInfo">
+            <div class="level-info">关卡: <span id="level">1</span></div>
+            <div>步数: <span id="steps">0</span></div>
+            <div>难度: <span id="difficulty">普通</span></div>
+        </div>
+        
+        <div class="controls hidden" id="gameControls">
+            使用方向键或WASD推动箱子到目标位置
+            <br>
+            所有箱子都到位就过关！
+            <br>
+            <button onclick="resetLevel()">重置关卡</button>
+            <button onclick="resetGame()">重新开始</button>
+        </div>
+        
+        <div class="game-over" id="gameOver">
+            <h2 id="gameOverText">恭喜过关！</h2>
+            <p>总步数: <span id="totalSteps">0</span></p>
+            <button onclick="nextLevel()">下一关</button>
+            <button onclick="resetGame()">重新开始</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const difficultySelector = document.getElementById('difficultySelector');
+        const gameInfo = document.getElementById('gameInfo');
+        const gameControls = document.getElementById('gameControls');
+        const difficultyElement = document.getElementById('difficulty');
+        const levelElement = document.getElementById('level');
+        const stepsElement = document.getElementById('steps');
+        const gameOverElement = document.getElementById('gameOver');
+        const gameOverText = document.getElementById('gameOverText');
+        const totalStepsElement = document.getElementById('totalSteps');
+
+        const CELL_SIZE = 40;
+        
+        let currentLevel = 0;
+        let steps = 0;
+        let gameRunning = false;
+        let difficulty = 'normal';
+        let player = { x: 0, y: 0 };
+        let boxes = [];
+        let targets = [];
+        let walls = [];
+        let levelData = [];
+
+        // 关卡数据 (0=空地, 1=墙, 2=目标, 3=箱子, 4=玩家, 5=箱子在目标上, 6=玩家在目标上)
+        const levels = {
+            easy: [
+                [
+                    "1111111",
+                    "1000001",
+                    "1030201",
+                    "1000001",
+                    "1004001",
+                    "1000001",
+                    "1111111"
+                ],
+                [
+                    "11111111",
+                    "10000001",
+                    "10300301",
+                    "10020201",
+                    "10000001",
+                    "10004001",
+                    "10000001",
+                    "11111111"
+                ]
+            ],
+            normal: [
+                [
+                    "1111111111",
+                    "1000000001",
+                    "1030000301",
+                    "1002020201",
+                    "1000000001",
+                    "1000040001",
+                    "1000000001",
+                    "1111111111"
+                ],
+                [
+                    "111111111",
+                    "100000001",
+                    "103000301",
+                    "100202001",
+                    "100030001",
+                    "100004001",
+                    "100000001",
+                    "111111111"
+                ]
+            ],
+            hard: [
+                [
+                    "11111111111",
+                    "10000000001",
+                    "10300003001",
+                    "10020202001",
+                    "10003030001",
+                    "10000000001",
+                    "10000040001",
+                    "10000000001",
+                    "11111111111"
+                ],
+                [
+                    "1111111111111",
+                    "1000000000001",
+                    "1030000000301",
+                    "1002020202001",
+                    "1000303030001",
+                    "1000000000001",
+                    "1000004000001",
+                    "1000000000001",
+                    "1111111111111"
+                ]
+            ]
+        };
+
+        function startGame(selectedDifficulty = 'normal') {
+            difficulty = selectedDifficulty;
+            
+            switch(difficulty) {
+                case 'easy':
+                    difficultyElement.textContent = '简单';
+                    break;
+                case 'normal':
+                    difficultyElement.textContent = '普通';
+                    break;
+                case 'hard':
+                    difficultyElement.textContent = '困难';
+                    break;
+            }
+            
+            // 隐藏难度选择，显示游戏界面
+            difficultySelector.classList.add('hidden');
+            canvas.classList.remove('hidden');
+            gameInfo.classList.remove('hidden');
+            gameControls.classList.remove('hidden');
+            
+            currentLevel = 0;
+            loadLevel();
+        }
+
+        function loadLevel() {
+            const levelMaps = levels[difficulty];
+            if (currentLevel >= levelMaps.length) {
+                gameOverText.textContent = '恭喜通关！';
+                totalStepsElement.textContent = steps;
+                gameOverElement.style.display = 'block';
+                return;
+            }
+
+            levelData = levelMaps[currentLevel];
+            parseLevel();
+            gameRunning = true;
+            updateDisplay();
+            draw();
+        }
+
+        function parseLevel() {
+            walls = [];
+            boxes = [];
+            targets = [];
+            
+            for (let row = 0; row < levelData.length; row++) {
+                for (let col = 0; col < levelData[row].length; col++) {
+                    const cell = parseInt(levelData[row][col]);
+                    const x = col;
+                    const y = row;
+                    
+                    switch(cell) {
+                        case 1: // 墙
+                            walls.push({ x, y });
+                            break;
+                        case 2: // 目标
+                            targets.push({ x, y });
+                            break;
+                        case 3: // 箱子
+                            boxes.push({ x, y });
+                            break;
+                        case 4: // 玩家
+                            player = { x, y };
+                            break;
+                        case 5: // 箱子在目标上
+                            boxes.push({ x, y });
+                            targets.push({ x, y });
+                            break;
+                        case 6: // 玩家在目标上
+                            player = { x, y };
+                            targets.push({ x, y });
+                            break;
+                    }
+                }
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const offsetX = (canvas.width - levelData[0].length * CELL_SIZE) / 2;
+            const offsetY = (canvas.height - levelData.length * CELL_SIZE) / 2;
+            
+            // 绘制地板
+            ctx.fillStyle = '#F5DEB3';
+            ctx.fillRect(offsetX, offsetY, levelData[0].length * CELL_SIZE, levelData.length * CELL_SIZE);
+            
+            // 绘制目标
+            ctx.fillStyle = '#FFD700';
+            targets.forEach(target => {
+                const x = offsetX + target.x * CELL_SIZE + 5;
+                const y = offsetY + target.y * CELL_SIZE + 5;
+                ctx.fillRect(x, y, CELL_SIZE - 10, CELL_SIZE - 10);
+            });
+            
+            // 绘制墙壁
+            ctx.fillStyle = '#8B4513';
+            walls.forEach(wall => {
+                const x = offsetX + wall.x * CELL_SIZE;
+                const y = offsetY + wall.y * CELL_SIZE;
+                ctx.fillRect(x, y, CELL_SIZE, CELL_SIZE);
+                
+                // 墙壁边框
+                ctx.strokeStyle = '#654321';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(x, y, CELL_SIZE, CELL_SIZE);
+            });
+            
+            // 绘制箱子
+            boxes.forEach(box => {
+                const x = offsetX + box.x * CELL_SIZE + 3;
+                const y = offsetY + box.y * CELL_SIZE + 3;
+                
+                // 检查箱子是否在目标上
+                const onTarget = targets.some(target => target.x === box.x && target.y === box.y);
+                ctx.fillStyle = onTarget ? '#32CD32' : '#D2691E';
+                
+                ctx.fillRect(x, y, CELL_SIZE - 6, CELL_SIZE - 6);
+                
+                // 箱子边框
+                ctx.strokeStyle = '#8B4513';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(x, y, CELL_SIZE - 6, CELL_SIZE - 6);
+            });
+            
+            // 绘制玩家
+            ctx.fillStyle = '#FF6347';
+            const playerX = offsetX + player.x * CELL_SIZE + 8;
+            const playerY = offsetY + player.y * CELL_SIZE + 8;
+            ctx.beginPath();
+            ctx.arc(playerX + CELL_SIZE/4, playerY + CELL_SIZE/4, CELL_SIZE/4, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 玩家眼睛
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(playerX + CELL_SIZE/4 - 3, playerY + CELL_SIZE/4 - 3, 2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(playerX + CELL_SIZE/4 + 3, playerY + CELL_SIZE/4 - 3, 2, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function movePlayer(dx, dy) {
+            if (!gameRunning) return;
+            
+            const newX = player.x + dx;
+            const newY = player.y + dy;
+            
+            // 检查是否撞墙
+            if (walls.some(wall => wall.x === newX && wall.y === newY)) {
+                return;
+            }
+            
+            // 检查是否推箱子
+            const boxIndex = boxes.findIndex(box => box.x === newX && box.y === newY);
+            if (boxIndex !== -1) {
+                const boxNewX = newX + dx;
+                const boxNewY = newY + dy;
+                
+                // 检查箱子新位置是否有效
+                if (walls.some(wall => wall.x === boxNewX && wall.y === boxNewY) ||
+                    boxes.some(box => box.x === boxNewX && box.y === boxNewY)) {
+                    return;
+                }
+                
+                // 移动箱子
+                boxes[boxIndex].x = boxNewX;
+                boxes[boxIndex].y = boxNewY;
+            }
+            
+            // 移动玩家
+            player.x = newX;
+            player.y = newY;
+            steps++;
+            
+            updateDisplay();
+            draw();
+            
+            // 检查是否过关
+            if (checkWin()) {
+                setTimeout(() => {
+                    gameOverText.textContent = '关卡完成！';
+                    totalStepsElement.textContent = steps;
+                    gameOverElement.style.display = 'block';
+                }, 500);
+            }
+        }
+
+        function checkWin() {
+            return boxes.every(box => 
+                targets.some(target => target.x === box.x && target.y === box.y)
+            );
+        }
+
+        function updateDisplay() {
+            levelElement.textContent = currentLevel + 1;
+            stepsElement.textContent = steps;
+        }
+
+        function resetLevel() {
+            loadLevel();
+        }
+
+        function nextLevel() {
+            currentLevel++;
+            gameOverElement.style.display = 'none';
+            loadLevel();
+        }
+
+        function resetGame() {
+            currentLevel = 0;
+            steps = 0;
+            gameOverElement.style.display = 'none';
+            loadLevel();
+        }
+
+        // 键盘控制
+        document.addEventListener('keydown', (e) => {
+            switch(e.key) {
+                case 'ArrowUp':
+                case 'w':
+                case 'W':
+                    movePlayer(0, -1);
+                    break;
+                case 'ArrowDown':
+                case 's':
+                case 'S':
+                    movePlayer(0, 1);
+                    break;
+                case 'ArrowLeft':
+                case 'a':
+                case 'A':
+                    movePlayer(-1, 0);
+                    break;
+                case 'ArrowRight':
+                case 'd':
+                case 'D':
+                    movePlayer(1, 0);
+                    break;
+            }
+        });
+
+        // 游戏通过难度选择按钮启动
+    </script>
+</body>
+</html>

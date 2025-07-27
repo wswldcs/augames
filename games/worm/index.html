@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>贪吃虫</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #8E24AA 0%, #3F51B5 100%);
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: white;
+        }
+        
+        .game-container {
+            text-align: center;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid #8E24AA;
+        }
+        
+        h1 {
+            margin: 0 0 20px 0;
+            font-size: 2.5em;
+            color: #8E24AA;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+        }
+        
+        .difficulty-selector {
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .difficulty-selector h3 {
+            margin-bottom: 15px;
+            color: white;
+        }
+        
+        .difficulty-btn {
+            background: #8E24AA;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            margin: 0 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .difficulty-btn:hover {
+            background: #7B1FA2;
+            transform: scale(1.05);
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        #gameCanvas {
+            border: 3px solid #8E24AA;
+            background: #1A1A2E;
+            display: block;
+            margin: 0 auto;
+        }
+        
+        .info {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-around;
+            font-size: 1.2em;
+            color: #8E24AA;
+        }
+        
+        .controls {
+            margin-top: 15px;
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+        
+        button {
+            background: #FF5722;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            margin: 5px;
+            transition: background 0.3s;
+        }
+        
+        button:hover {
+            background: #E64A19;
+        }
+        
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            display: none;
+            border: 3px solid #8E24AA;
+        }
+        
+        .special-food {
+            color: #FFD700;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🐛 贪吃虫</h1>
+        
+        <!-- 难度选择 -->
+        <div class="difficulty-selector" id="difficultySelector">
+            <h3>选择难度:</h3>
+            <button onclick="startGame('easy')" class="difficulty-btn">简单 (慢速+奖励)</button>
+            <button onclick="startGame('normal')" class="difficulty-btn">普通 (中速)</button>
+            <button onclick="startGame('hard')" class="difficulty-btn">困难 (快速+障碍)</button>
+        </div>
+        
+        <canvas id="gameCanvas" width="600" height="600" class="hidden"></canvas>
+        
+        <div class="info hidden" id="gameInfo">
+            <div>分数: <span id="score">0</span></div>
+            <div>长度: <span id="length">3</span></div>
+            <div class="special-food">特殊食物: <span id="specialFood">0</span></div>
+            <div>难度: <span id="difficulty">普通</span></div>
+        </div>
+        
+        <div class="controls hidden" id="gameControls">
+            使用方向键或WASD控制贪吃虫移动
+            <br>
+            🟢普通食物 🟡特殊食物 🔴障碍物
+            <br>
+            <button onclick="resetGame()">重新开始</button>
+        </div>
+        
+        <div class="game-over" id="gameOver">
+            <h2 id="gameOverText">游戏结束</h2>
+            <p>最终分数: <span id="finalScore">0</span></p>
+            <p>最终长度: <span id="finalLength">0</span></p>
+            <button onclick="resetGame()">重新开始</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const difficultySelector = document.getElementById('difficultySelector');
+        const gameInfo = document.getElementById('gameInfo');
+        const gameControls = document.getElementById('gameControls');
+        const difficultyElement = document.getElementById('difficulty');
+        const scoreElement = document.getElementById('score');
+        const lengthElement = document.getElementById('length');
+        const specialFoodElement = document.getElementById('specialFood');
+        const gameOverElement = document.getElementById('gameOver');
+        const gameOverText = document.getElementById('gameOverText');
+        const finalScoreElement = document.getElementById('finalScore');
+        const finalLengthElement = document.getElementById('finalLength');
+
+        const GRID_SIZE = 20;
+        const GRID_WIDTH = canvas.width / GRID_SIZE;
+        const GRID_HEIGHT = canvas.height / GRID_SIZE;
+        
+        let worm = [{ x: 10, y: 10 }];
+        let direction = { x: 0, y: 0 };
+        let food = [];
+        let obstacles = [];
+        let score = 0;
+        let specialFoodCount = 0;
+        let gameRunning = false;
+        let gameSpeed = 150;
+        let difficulty = 'normal';
+
+        function startGame(selectedDifficulty = 'normal') {
+            difficulty = selectedDifficulty;
+            
+            // 设置难度参数
+            switch(difficulty) {
+                case 'easy':
+                    gameSpeed = 200;
+                    difficultyElement.textContent = '简单';
+                    break;
+                case 'normal':
+                    gameSpeed = 150;
+                    difficultyElement.textContent = '普通';
+                    break;
+                case 'hard':
+                    gameSpeed = 100;
+                    difficultyElement.textContent = '困难';
+                    break;
+            }
+            
+            // 隐藏难度选择，显示游戏界面
+            difficultySelector.classList.add('hidden');
+            canvas.classList.remove('hidden');
+            gameInfo.classList.remove('hidden');
+            gameControls.classList.remove('hidden');
+            
+            initGame();
+        }
+
+        function initGame() {
+            worm = [{ x: 10, y: 10 }, { x: 9, y: 10 }, { x: 8, y: 10 }];
+            direction = { x: 0, y: 0 };
+            food = [];
+            obstacles = [];
+            score = 0;
+            specialFoodCount = 0;
+            gameRunning = true;
+            gameOverElement.style.display = 'none';
+            
+            generateFood();
+            if (difficulty === 'hard') {
+                generateObstacles();
+            }
+            
+            updateDisplay();
+            gameLoop();
+        }
+
+        function gameLoop() {
+            if (!gameRunning) return;
+            
+            update();
+            draw();
+            
+            setTimeout(() => {
+                gameLoop();
+            }, gameSpeed);
+        }
+
+        function update() {
+            if (direction.x === 0 && direction.y === 0) {
+                return; // 等待用户输入方向
+            }
+
+            const head = { x: worm[0].x + direction.x, y: worm[0].y + direction.y };
+
+            // 穿墙处理
+            if (head.x < 0) head.x = GRID_WIDTH - 1;
+            if (head.x >= GRID_WIDTH) head.x = 0;
+            if (head.y < 0) head.y = GRID_HEIGHT - 1;
+            if (head.y >= GRID_HEIGHT) head.y = 0;
+
+            // 检查自身碰撞
+            if (worm.some(segment => segment.x === head.x && segment.y === head.y)) {
+                gameOver();
+                return;
+            }
+
+            // 检查障碍物碰撞
+            if (obstacles.some(obstacle => obstacle.x === head.x && obstacle.y === head.y)) {
+                gameOver();
+                return;
+            }
+
+            worm.unshift(head);
+
+            // 检查食物碰撞
+            const foodIndex = food.findIndex(f => f.x === head.x && f.y === head.y);
+            if (foodIndex !== -1) {
+                const eatenFood = food[foodIndex];
+                food.splice(foodIndex, 1);
+                
+                if (eatenFood.type === 'normal') {
+                    score += 10;
+                } else if (eatenFood.type === 'special') {
+                    score += 50;
+                    specialFoodCount++;
+                    
+                    // 特殊食物效果：增加额外长度
+                    worm.push({ x: -1, y: -1 });
+                    worm.push({ x: -1, y: -1 });
+                }
+                
+                generateFood();
+                updateDisplay();
+            } else {
+                worm.pop();
+            }
+        }
+
+        function generateFood() {
+            // 确保至少有3个食物
+            while (food.length < 3) {
+                let newFood;
+                do {
+                    newFood = {
+                        x: Math.floor(Math.random() * GRID_WIDTH),
+                        y: Math.floor(Math.random() * GRID_HEIGHT),
+                        type: Math.random() < 0.8 ? 'normal' : 'special'
+                    };
+                } while (
+                    worm.some(segment => segment.x === newFood.x && segment.y === newFood.y) ||
+                    obstacles.some(obstacle => obstacle.x === newFood.x && obstacle.y === newFood.y) ||
+                    food.some(f => f.x === newFood.x && f.y === newFood.y)
+                );
+                
+                food.push(newFood);
+            }
+        }
+
+        function generateObstacles() {
+            const numObstacles = 10;
+            for (let i = 0; i < numObstacles; i++) {
+                let obstacle;
+                do {
+                    obstacle = {
+                        x: Math.floor(Math.random() * GRID_WIDTH),
+                        y: Math.floor(Math.random() * GRID_HEIGHT)
+                    };
+                } while (
+                    worm.some(segment => segment.x === obstacle.x && segment.y === obstacle.y) ||
+                    obstacles.some(obs => obs.x === obstacle.x && obs.y === obstacle.y) ||
+                    (obstacle.x >= 8 && obstacle.x <= 12 && obstacle.y >= 8 && obstacle.y <= 12) // 避免在起始区域
+                );
+                
+                obstacles.push(obstacle);
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制网格
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 1;
+            for (let x = 0; x <= GRID_WIDTH; x++) {
+                ctx.beginPath();
+                ctx.moveTo(x * GRID_SIZE, 0);
+                ctx.lineTo(x * GRID_SIZE, canvas.height);
+                ctx.stroke();
+            }
+            for (let y = 0; y <= GRID_HEIGHT; y++) {
+                ctx.beginPath();
+                ctx.moveTo(0, y * GRID_SIZE);
+                ctx.lineTo(canvas.width, y * GRID_SIZE);
+                ctx.stroke();
+            }
+            
+            // 绘制食物
+            food.forEach(f => {
+                if (f.type === 'normal') {
+                    ctx.fillStyle = '#4CAF50';
+                } else {
+                    ctx.fillStyle = '#FFD700';
+                }
+                
+                ctx.beginPath();
+                ctx.arc(
+                    f.x * GRID_SIZE + GRID_SIZE / 2,
+                    f.y * GRID_SIZE + GRID_SIZE / 2,
+                    GRID_SIZE / 3,
+                    0,
+                    Math.PI * 2
+                );
+                ctx.fill();
+            });
+            
+            // 绘制障碍物
+            ctx.fillStyle = '#F44336';
+            obstacles.forEach(obstacle => {
+                ctx.fillRect(
+                    obstacle.x * GRID_SIZE + 2,
+                    obstacle.y * GRID_SIZE + 2,
+                    GRID_SIZE - 4,
+                    GRID_SIZE - 4
+                );
+            });
+            
+            // 绘制贪吃虫
+            worm.forEach((segment, index) => {
+                if (segment.x === -1) return; // 跳过无效段
+                
+                if (index === 0) {
+                    // 头部
+                    ctx.fillStyle = '#8E24AA';
+                } else {
+                    // 身体
+                    ctx.fillStyle = '#BA68C8';
+                }
+                
+                ctx.fillRect(
+                    segment.x * GRID_SIZE + 1,
+                    segment.y * GRID_SIZE + 1,
+                    GRID_SIZE - 2,
+                    GRID_SIZE - 2
+                );
+                
+                // 头部眼睛
+                if (index === 0) {
+                    ctx.fillStyle = '#FFF';
+                    ctx.fillRect(segment.x * GRID_SIZE + 4, segment.y * GRID_SIZE + 4, 4, 4);
+                    ctx.fillRect(segment.x * GRID_SIZE + 12, segment.y * GRID_SIZE + 4, 4, 4);
+                }
+            });
+        }
+
+        function updateDisplay() {
+            scoreElement.textContent = score;
+            lengthElement.textContent = worm.filter(segment => segment.x !== -1).length;
+            specialFoodElement.textContent = specialFoodCount;
+        }
+
+        function gameOver() {
+            gameRunning = false;
+            finalScoreElement.textContent = score;
+            finalLengthElement.textContent = worm.filter(segment => segment.x !== -1).length;
+            gameOverElement.style.display = 'block';
+        }
+
+        function resetGame() {
+            initGame();
+        }
+
+        // 键盘控制
+        document.addEventListener('keydown', (e) => {
+            if (!gameRunning) return;
+            
+            switch(e.key) {
+                case 'ArrowUp':
+                case 'w':
+                case 'W':
+                    if (direction.y !== 1) direction = { x: 0, y: -1 };
+                    break;
+                case 'ArrowDown':
+                case 's':
+                case 'S':
+                    if (direction.y !== -1) direction = { x: 0, y: 1 };
+                    break;
+                case 'ArrowLeft':
+                case 'a':
+                case 'A':
+                    if (direction.x !== 1) direction = { x: -1, y: 0 };
+                    break;
+                case 'ArrowRight':
+                case 'd':
+                case 'D':
+                    if (direction.x !== -1) direction = { x: 1, y: 0 };
+                    break;
+            }
+        });
+
+        // 游戏通过难度选择按钮启动
+    </script>
+</body>
+</html>

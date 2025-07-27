@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数字拼图</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: white;
+        }
+        
+        .game-container {
+            text-align: center;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        h1 {
+            margin: 0 0 20px 0;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .puzzle-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 80px);
+            grid-template-rows: repeat(4, 80px);
+            gap: 5px;
+            margin: 20px auto;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 10px;
+            border-radius: 10px;
+        }
+        
+        .puzzle-tile {
+            background: linear-gradient(145deg, #667eea, #764ba2);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .puzzle-tile:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+        }
+        
+        .puzzle-tile.empty {
+            background: transparent;
+            box-shadow: none;
+            cursor: default;
+        }
+        
+        .puzzle-tile.empty:hover {
+            transform: none;
+        }
+        
+        .info {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-around;
+            font-size: 1.2em;
+        }
+        
+        .controls {
+            margin-top: 15px;
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+        
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            margin: 5px;
+        }
+        
+        button:hover {
+            background: #764ba2;
+        }
+        
+        .difficulty-selector {
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .difficulty-selector h3 {
+            margin-bottom: 15px;
+            color: white;
+        }
+
+        .difficulty-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            margin: 0 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: background 0.3s;
+        }
+
+        .difficulty-btn:hover {
+            background: #2980b9;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .win-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            display: none;
+            border: 2px solid #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>数字拼图</h1>
+
+        <!-- 难度选择 -->
+        <div class="difficulty-selector" id="difficultySelector">
+            <h3>选择难度:</h3>
+            <button onclick="startGame('easy')" class="difficulty-btn">简单 (3x3)</button>
+            <button onclick="startGame('normal')" class="difficulty-btn">普通 (4x4)</button>
+            <button onclick="startGame('hard')" class="difficulty-btn">困难 (5x5)</button>
+        </div>
+
+        <div class="puzzle-grid hidden" id="puzzleGrid"></div>
+        <div class="info hidden" id="gameInfo">
+            <div>移动次数: <span id="moves">0</span></div>
+            <div>时间: <span id="time">00:00</span></div>
+            <div>难度: <span id="difficulty">普通</span></div>
+        </div>
+        <div class="controls hidden" id="gameControls">
+            点击数字块移动到空位
+            <br>
+            <button onclick="shufflePuzzle()">打乱</button>
+            <button onclick="resetPuzzle()">重置</button>
+        </div>
+        <div class="win-message" id="winMessage">
+            <h2>恭喜完成！</h2>
+            <p>移动次数: <span id="finalMoves">0</span></p>
+            <p>用时: <span id="finalTime">00:00</span></p>
+            <button onclick="resetPuzzle()">再玩一次</button>
+        </div>
+    </div>
+
+    <script>
+        const difficultySelector = document.getElementById('difficultySelector');
+        const gameInfo = document.getElementById('gameInfo');
+        const gameControls = document.getElementById('gameControls');
+        const difficultyElement = document.getElementById('difficulty');
+
+        let puzzle = [];
+        let emptyPos = { row: 3, col: 3 };
+        let moves = 0;
+        let startTime = null;
+        let gameTimer = null;
+        let gridSize = 4;
+        let difficulty = 'normal';
+
+        function startGame(selectedDifficulty = 'normal') {
+            difficulty = selectedDifficulty;
+
+            // 设置难度参数
+            switch(difficulty) {
+                case 'easy':
+                    gridSize = 3;
+                    difficultyElement.textContent = '简单 (3x3)';
+                    break;
+                case 'normal':
+                    gridSize = 4;
+                    difficultyElement.textContent = '普通 (4x4)';
+                    break;
+                case 'hard':
+                    gridSize = 5;
+                    difficultyElement.textContent = '困难 (5x5)';
+                    break;
+            }
+
+            // 隐藏难度选择，显示游戏界面
+            difficultySelector.classList.add('hidden');
+            document.getElementById('puzzleGrid').classList.remove('hidden');
+            gameInfo.classList.remove('hidden');
+            gameControls.classList.remove('hidden');
+
+            initPuzzle();
+        }
+
+        function initPuzzle() {
+            puzzle = [];
+            for (let i = 0; i < gridSize; i++) {
+                puzzle[i] = [];
+                for (let j = 0; j < gridSize; j++) {
+                    if (i === gridSize - 1 && j === gridSize - 1) {
+                        puzzle[i][j] = 0; // 空位
+                    } else {
+                        puzzle[i][j] = i * gridSize + j + 1;
+                    }
+                }
+            }
+            emptyPos = { row: gridSize - 1, col: gridSize - 1 };
+            moves = 0;
+            updateDisplay();
+        }
+
+        function renderPuzzle() {
+            const grid = document.getElementById('puzzleGrid');
+            grid.innerHTML = '';
+            grid.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
+
+            for (let i = 0; i < gridSize; i++) {
+                for (let j = 0; j < gridSize; j++) {
+                    const tile = document.createElement('button');
+                    tile.className = 'puzzle-tile';
+
+                    if (puzzle[i][j] === 0) {
+                        tile.className += ' empty';
+                        tile.textContent = '';
+                    } else {
+                        tile.textContent = puzzle[i][j];
+                        tile.onclick = () => moveTile(i, j);
+                    }
+
+                    grid.appendChild(tile);
+                }
+            }
+        }
+
+        function moveTile(row, col) {
+            // 检查是否可以移动到空位
+            const canMove = (
+                (Math.abs(row - emptyPos.row) === 1 && col === emptyPos.col) ||
+                (Math.abs(col - emptyPos.col) === 1 && row === emptyPos.row)
+            );
+
+            if (canMove) {
+                // 交换位置
+                puzzle[emptyPos.row][emptyPos.col] = puzzle[row][col];
+                puzzle[row][col] = 0;
+                emptyPos = { row, col };
+                
+                moves++;
+                updateDisplay();
+                renderPuzzle();
+                
+                if (checkWin()) {
+                    showWinMessage();
+                }
+                
+                // 开始计时
+                if (!startTime) {
+                    startTime = Date.now();
+                    gameTimer = setInterval(updateTimer, 1000);
+                }
+            }
+        }
+
+        function checkWin() {
+            for (let i = 0; i < gridSize; i++) {
+                for (let j = 0; j < gridSize; j++) {
+                    const expectedValue = i === gridSize - 1 && j === gridSize - 1 ? 0 : i * gridSize + j + 1;
+                    if (puzzle[i][j] !== expectedValue) {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        function shufflePuzzle() {
+            // 根据难度调整打乱次数
+            const shuffleCount = difficulty === 'easy' ? 500 :
+                                difficulty === 'normal' ? 1000 : 1500;
+
+            for (let i = 0; i < shuffleCount; i++) {
+                const possibleMoves = [];
+
+                // 找到所有可能的移动
+                if (emptyPos.row > 0) possibleMoves.push({ row: emptyPos.row - 1, col: emptyPos.col });
+                if (emptyPos.row < gridSize - 1) possibleMoves.push({ row: emptyPos.row + 1, col: emptyPos.col });
+                if (emptyPos.col > 0) possibleMoves.push({ row: emptyPos.row, col: emptyPos.col - 1 });
+                if (emptyPos.col < gridSize - 1) possibleMoves.push({ row: emptyPos.row, col: emptyPos.col + 1 });
+                
+                // 随机选择一个移动
+                const randomMove = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+                
+                // 执行移动（不增加移动计数）
+                puzzle[emptyPos.row][emptyPos.col] = puzzle[randomMove.row][randomMove.col];
+                puzzle[randomMove.row][randomMove.col] = 0;
+                emptyPos = randomMove;
+            }
+            
+            moves = 0;
+            startTime = null;
+            if (gameTimer) {
+                clearInterval(gameTimer);
+                gameTimer = null;
+            }
+            updateDisplay();
+            renderPuzzle();
+        }
+
+        function resetPuzzle() {
+            if (gameTimer) {
+                clearInterval(gameTimer);
+                gameTimer = null;
+            }
+            startTime = null;
+            document.getElementById('winMessage').style.display = 'none';
+            initPuzzle();
+        }
+
+        function updateDisplay() {
+            document.getElementById('moves').textContent = moves;
+        }
+
+        function updateTimer() {
+            if (startTime) {
+                const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                const minutes = Math.floor(elapsed / 60);
+                const seconds = elapsed % 60;
+                document.getElementById('time').textContent = 
+                    `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+        }
+
+        function showWinMessage() {
+            if (gameTimer) {
+                clearInterval(gameTimer);
+                gameTimer = null;
+            }
+            
+            document.getElementById('finalMoves').textContent = moves;
+            document.getElementById('finalTime').textContent = document.getElementById('time').textContent;
+            document.getElementById('winMessage').style.display = 'block';
+        }
+
+        // 游戏通过难度选择按钮启动
+    </script>
+</body>
+</html>

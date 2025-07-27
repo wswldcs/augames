@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>俄罗斯方块</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 10px;
+            background: #4F46E5;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: white;
+        }
+
+        .game-container {
+            text-align: center;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        h1 {
+            margin: 0 0 15px 0;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        #gameCanvas {
+            border: 2px solid #fff;
+            background: #000;
+        }
+
+        .info {
+            margin-top: 10px;
+            display: flex;
+            justify-content: space-around;
+            font-size: 1.1em;
+        }
+
+        .controls {
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+
+        .game-over {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            display: none;
+        }
+
+        button {
+            background: #667eea;
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .difficulty-selector {
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .difficulty-selector h3 {
+            margin-bottom: 15px;
+            color: white;
+        }
+
+        .difficulty-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            margin: 0 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: background 0.3s;
+        }
+
+        .difficulty-btn:hover {
+            background: #2980b9;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🎮 俄罗斯方块</h1>
+
+        <!-- 难度选择 -->
+        <div class="difficulty-selector" id="difficultySelector">
+            <h3>选择难度:</h3>
+            <button onclick="startGame('easy')" class="difficulty-btn">简单</button>
+            <button onclick="startGame('normal')" class="difficulty-btn">普通</button>
+            <button onclick="startGame('hard')" class="difficulty-btn">困难</button>
+        </div>
+
+        <canvas id="gameCanvas" width="300" height="600" style="display: none;"></canvas>
+
+        <div class="info" id="gameInfo" style="display: none;">
+            <div>分数: <span id="score">0</span></div>
+            <div>等级: <span id="level">1</span></div>
+            <div>行数: <span id="lines">0</span></div>
+            <div>难度: <span id="difficulty">普通</span></div>
+        </div>
+
+        <div class="controls" id="gameControls" style="display: none;">
+            <p>🎯 操作说明:</p>
+            <p>← → 移动 | ↓ 快速下降 | ↑ 旋转 | 空格 暂停</p>
+        </div>
+        
+        <div class="game-over" id="gameOver">
+            <h2>🎉 游戏结束!</h2>
+            <p>最终分数: <span id="finalScore">0</span></p>
+            <button onclick="startGame()">重新开始</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreElement = document.getElementById('score');
+        const levelElement = document.getElementById('level');
+        const linesElement = document.getElementById('lines');
+        const difficultyElement = document.getElementById('difficulty');
+        const gameOverElement = document.getElementById('gameOver');
+        const finalScoreElement = document.getElementById('finalScore');
+        const difficultySelector = document.getElementById('difficultySelector');
+        const gameInfo = document.getElementById('gameInfo');
+        const gameControls = document.getElementById('gameControls');
+
+        const BOARD_WIDTH = 10;
+        const BOARD_HEIGHT = 20;
+        const BLOCK_SIZE = 30;
+
+        let board = [];
+        let currentPiece = null;
+        let score = 0;
+        let level = 1;
+        let lines = 0;
+        let gameRunning = false;
+        let gamePaused = false;
+        let dropTime = 0;
+        let difficulty = 'normal';
+        let dropInterval = 1000;
+        let lastTime = 0;
+
+        // 方块形状定义
+        const PIECES = [
+            { shape: [[1,1,1,1]], color: '#00f0f0' }, // I
+            { shape: [[1,1],[1,1]], color: '#f0f000' }, // O
+            { shape: [[0,1,0],[1,1,1]], color: '#a000f0' }, // T
+            { shape: [[0,1,1],[1,1,0]], color: '#00f000' }, // S
+            { shape: [[1,1,0],[0,1,1]], color: '#f00000' }, // Z
+            { shape: [[1,0,0],[1,1,1]], color: '#f0a000' }, // J
+            { shape: [[0,0,1],[1,1,1]], color: '#0000f0' }  // L
+        ];
+
+        function initBoard() {
+            board = Array(BOARD_HEIGHT).fill().map(() => Array(BOARD_WIDTH).fill(0));
+        }
+
+        function createPiece() {
+            const piece = PIECES[Math.floor(Math.random() * PIECES.length)];
+            return {
+                shape: piece.shape,
+                color: piece.color,
+                x: Math.floor(BOARD_WIDTH / 2) - Math.floor(piece.shape[0].length / 2),
+                y: 0
+            };
+        }
+
+        function drawBlock(x, y, color) {
+            ctx.fillStyle = color;
+            ctx.fillRect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
+            ctx.strokeStyle = '#333';
+            ctx.strokeRect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
+        }
+
+        function drawBoard() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            for (let y = 0; y < BOARD_HEIGHT; y++) {
+                for (let x = 0; x < BOARD_WIDTH; x++) {
+                    if (board[y][x]) {
+                        drawBlock(x, y, board[y][x]);
+                    }
+                }
+            }
+        }
+
+        function drawPiece(piece) {
+            for (let y = 0; y < piece.shape.length; y++) {
+                for (let x = 0; x < piece.shape[y].length; x++) {
+                    if (piece.shape[y][x]) {
+                        drawBlock(piece.x + x, piece.y + y, piece.color);
+                    }
+                }
+            }
+        }
+
+        function isValidMove(piece, dx, dy, rotation = null) {
+            const shape = rotation || piece.shape;
+            const newX = piece.x + dx;
+            const newY = piece.y + dy;
+
+            for (let y = 0; y < shape.length; y++) {
+                for (let x = 0; x < shape[y].length; x++) {
+                    if (shape[y][x]) {
+                        const boardX = newX + x;
+                        const boardY = newY + y;
+                        
+                        if (boardX < 0 || boardX >= BOARD_WIDTH || 
+                            boardY >= BOARD_HEIGHT || 
+                            (boardY >= 0 && board[boardY][boardX])) {
+                            return false;
+                        }
+                    }
+                }
+            }
+            return true;
+        }
+
+        function placePiece(piece) {
+            for (let y = 0; y < piece.shape.length; y++) {
+                for (let x = 0; x < piece.shape[y].length; x++) {
+                    if (piece.shape[y][x]) {
+                        const boardY = piece.y + y;
+                        if (boardY >= 0) {
+                            board[boardY][piece.x + x] = piece.color;
+                        }
+                    }
+                }
+            }
+        }
+
+        function clearLines() {
+            let linesCleared = 0;
+            for (let y = BOARD_HEIGHT - 1; y >= 0; y--) {
+                if (board[y].every(cell => cell !== 0)) {
+                    board.splice(y, 1);
+                    board.unshift(Array(BOARD_WIDTH).fill(0));
+                    linesCleared++;
+                    y++; // 重新检查这一行
+                }
+            }
+            
+            if (linesCleared > 0) {
+                lines += linesCleared;
+                score += linesCleared * 100 * level;
+                level = Math.floor(lines / 10) + 1;
+                updateDisplay();
+            }
+        }
+
+        function rotatePiece(piece) {
+            const rotated = piece.shape[0].map((_, i) => 
+                piece.shape.map(row => row[i]).reverse()
+            );
+            
+            if (isValidMove(piece, 0, 0, rotated)) {
+                piece.shape = rotated;
+            }
+        }
+
+        function updateDisplay() {
+            scoreElement.textContent = score;
+            levelElement.textContent = level;
+            linesElement.textContent = lines;
+        }
+
+        function gameOver() {
+            gameRunning = false;
+            finalScoreElement.textContent = score;
+            gameOverElement.style.display = 'block';
+        }
+
+        function gameLoop(time) {
+            if (!gameRunning || gamePaused) {
+                if (gameRunning && !gamePaused) {
+                    requestAnimationFrame(gameLoop);
+                }
+                return;
+            }
+
+            const deltaTime = time - lastTime;
+            lastTime = time;
+            dropTime += deltaTime;
+
+            if (dropTime > dropInterval / level) {
+                if (isValidMove(currentPiece, 0, 1)) {
+                    currentPiece.y++;
+                } else {
+                    placePiece(currentPiece);
+                    clearLines();
+                    currentPiece = createPiece();
+                    
+                    if (!isValidMove(currentPiece, 0, 0)) {
+                        gameOver();
+                        return;
+                    }
+                }
+                dropTime = 0;
+            }
+
+            drawBoard();
+            drawPiece(currentPiece);
+            requestAnimationFrame(gameLoop);
+        }
+
+        function startGame(selectedDifficulty = 'normal') {
+            difficulty = selectedDifficulty;
+
+            // 设置难度参数
+            switch(difficulty) {
+                case 'easy':
+                    dropInterval = 1500;
+                    difficultyElement.textContent = '简单';
+                    break;
+                case 'normal':
+                    dropInterval = 1000;
+                    difficultyElement.textContent = '普通';
+                    break;
+                case 'hard':
+                    dropInterval = 500;
+                    difficultyElement.textContent = '困难';
+                    break;
+            }
+
+            // 隐藏难度选择，显示游戏界面
+            difficultySelector.classList.add('hidden');
+            canvas.style.display = 'block';
+            gameInfo.style.display = 'block';
+            gameControls.style.display = 'block';
+
+            initBoard();
+            currentPiece = createPiece();
+            score = 0;
+            level = 1;
+            lines = 0;
+            gameRunning = true;
+            gamePaused = false;
+            dropTime = 0;
+            lastTime = 0;
+            gameOverElement.style.display = 'none';
+            updateDisplay();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // 键盘控制
+        document.addEventListener('keydown', (e) => {
+            if (!gameRunning && e.key !== ' ') return;
+
+            switch(e.key) {
+                case 'ArrowLeft':
+                    if (!gamePaused && isValidMove(currentPiece, -1, 0)) {
+                        currentPiece.x--;
+                    }
+                    break;
+                case 'ArrowRight':
+                    if (!gamePaused && isValidMove(currentPiece, 1, 0)) {
+                        currentPiece.x++;
+                    }
+                    break;
+                case 'ArrowDown':
+                    if (!gamePaused && isValidMove(currentPiece, 0, 1)) {
+                        currentPiece.y++;
+                        score += 1;
+                        updateDisplay();
+                    }
+                    break;
+                case 'ArrowUp':
+                    if (!gamePaused) {
+                        rotatePiece(currentPiece);
+                    }
+                    break;
+                case ' ':
+                    if (gameRunning) {
+                        gamePaused = !gamePaused;
+                        if (!gamePaused) {
+                            requestAnimationFrame(gameLoop);
+                        }
+                    }
+                    break;
+            }
+        });
+
+        // 游戏通过难度选择按钮启动
+    </script>
+</body>
+</html>

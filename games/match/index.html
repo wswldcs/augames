@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>连连看</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: white;
+        }
+        
+        .game-container {
+            text-align: center;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        h1 {
+            margin: 0 0 20px 0;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            color: #ff6b9d;
+        }
+        
+        .difficulty-selector {
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .difficulty-selector h3 {
+            margin-bottom: 15px;
+            color: white;
+        }
+        
+        .difficulty-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            margin: 0 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: background 0.3s;
+        }
+        
+        .difficulty-btn:hover {
+            background: #2980b9;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .game-board {
+            display: inline-grid;
+            gap: 2px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 10px;
+            margin: 20px auto;
+        }
+        
+        .tile {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: 2px solid #fff;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+        
+        .tile:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 15px rgba(255, 255, 255, 0.3);
+        }
+        
+        .tile.selected {
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            transform: scale(1.1);
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.6);
+        }
+        
+        .tile.matched {
+            background: #2ecc71;
+            opacity: 0.3;
+            cursor: default;
+            transform: none;
+        }
+        
+        .tile.matched:hover {
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .info {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-around;
+            font-size: 1.2em;
+        }
+        
+        .controls {
+            margin-top: 15px;
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+        
+        button {
+            background: #ff6b9d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            margin: 5px;
+            transition: background 0.3s;
+        }
+        
+        button:hover {
+            background: #e55a87;
+        }
+        
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            display: none;
+            border: 2px solid #ff6b9d;
+        }
+        
+        .timer {
+            font-family: 'Courier New', monospace;
+            font-size: 1.5em;
+            color: #ffd700;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🔗 连连看</h1>
+        
+        <!-- 难度选择 -->
+        <div class="difficulty-selector" id="difficultySelector">
+            <h3>选择难度:</h3>
+            <button onclick="startGame('easy')" class="difficulty-btn">简单 (6x6)</button>
+            <button onclick="startGame('normal')" class="difficulty-btn">普通 (8x8)</button>
+            <button onclick="startGame('hard')" class="difficulty-btn">困难 (10x10)</button>
+        </div>
+        
+        <div class="game-board hidden" id="gameBoard"></div>
+        
+        <div class="info hidden" id="gameInfo">
+            <div>剩余: <span id="remaining">0</span></div>
+            <div class="timer">时间: <span id="timer">00:00</span></div>
+            <div>难度: <span id="difficulty">普通</span></div>
+        </div>
+        
+        <div class="controls hidden" id="gameControls">
+            点击两个相同图案的方块来消除
+            <br>
+            <button onclick="shuffleBoard()">重新排列</button>
+            <button onclick="resetGame()">重新开始</button>
+        </div>
+        
+        <div class="game-over" id="gameOver">
+            <h2 id="gameOverText">游戏结束</h2>
+            <p id="gameResult"></p>
+            <button onclick="resetGame()">重新开始</button>
+        </div>
+    </div>
+
+    <script>
+        const difficultySelector = document.getElementById('difficultySelector');
+        const gameBoard = document.getElementById('gameBoard');
+        const gameInfo = document.getElementById('gameInfo');
+        const gameControls = document.getElementById('gameControls');
+        const difficultyElement = document.getElementById('difficulty');
+        const remainingElement = document.getElementById('remaining');
+        const timerElement = document.getElementById('timer');
+        const gameOverElement = document.getElementById('gameOver');
+        const gameOverText = document.getElementById('gameOverText');
+        const gameResult = document.getElementById('gameResult');
+
+        let board = [];
+        let gridSize = 8;
+        let selectedTiles = [];
+        let matchedPairs = 0;
+        let totalPairs = 0;
+        let startTime = null;
+        let timerInterval = null;
+        let difficulty = 'normal';
+        
+        // 游戏图案
+        const symbols = ['🍎', '🍌', '🍇', '🍊', '🍓', '🥝', '🍑', '🍒', 
+                        '🥭', '🍍', '🥥', '🍉', '🍈', '🍋', '🥑', '🍅',
+                        '🌟', '⭐', '💎', '🔥', '❄️', '⚡', '🌈', '☀️',
+                        '🌙', '🎈', '🎁', '🎀', '🎊', '🎉', '🎯', '🎪'];
+
+        function startGame(selectedDifficulty = 'normal') {
+            difficulty = selectedDifficulty;
+            
+            // 设置难度参数
+            switch(difficulty) {
+                case 'easy':
+                    gridSize = 6;
+                    difficultyElement.textContent = '简单 (6x6)';
+                    break;
+                case 'normal':
+                    gridSize = 8;
+                    difficultyElement.textContent = '普通 (8x8)';
+                    break;
+                case 'hard':
+                    gridSize = 10;
+                    difficultyElement.textContent = '困难 (10x10)';
+                    break;
+            }
+            
+            // 隐藏难度选择，显示游戏界面
+            difficultySelector.classList.add('hidden');
+            gameBoard.classList.remove('hidden');
+            gameInfo.classList.remove('hidden');
+            gameControls.classList.remove('hidden');
+            
+            initGame();
+        }
+
+        function initGame() {
+            board = [];
+            selectedTiles = [];
+            matchedPairs = 0;
+            totalPairs = (gridSize * gridSize) / 2;
+            startTime = Date.now();
+            
+            if (timerInterval) {
+                clearInterval(timerInterval);
+            }
+            
+            remainingElement.textContent = totalPairs;
+            gameOverElement.style.display = 'none';
+            
+            // 设置网格样式
+            gameBoard.style.gridTemplateColumns = `repeat(${gridSize}, 50px)`;
+            
+            generateBoard();
+            renderBoard();
+            startTimer();
+        }
+
+        function generateBoard() {
+            const pairs = [];
+            const symbolsToUse = symbols.slice(0, totalPairs);
+            
+            // 创建成对的符号
+            for (let i = 0; i < totalPairs; i++) {
+                pairs.push(symbolsToUse[i], symbolsToUse[i]);
+            }
+            
+            // 打乱数组
+            for (let i = pairs.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [pairs[i], pairs[j]] = [pairs[j], pairs[i]];
+            }
+            
+            // 转换为二维数组
+            board = [];
+            for (let i = 0; i < gridSize; i++) {
+                board[i] = [];
+                for (let j = 0; j < gridSize; j++) {
+                    board[i][j] = {
+                        symbol: pairs[i * gridSize + j],
+                        matched: false,
+                        selected: false
+                    };
+                }
+            }
+        }
+
+        function renderBoard() {
+            gameBoard.innerHTML = '';
+            for (let i = 0; i < gridSize; i++) {
+                for (let j = 0; j < gridSize; j++) {
+                    const tile = document.createElement('div');
+                    tile.className = 'tile';
+                    tile.dataset.row = i;
+                    tile.dataset.col = j;
+                    
+                    const cellData = board[i][j];
+                    tile.textContent = cellData.symbol;
+                    
+                    if (cellData.matched) {
+                        tile.classList.add('matched');
+                    } else if (cellData.selected) {
+                        tile.classList.add('selected');
+                    } else {
+                        tile.addEventListener('click', () => handleTileClick(i, j));
+                    }
+                    
+                    gameBoard.appendChild(tile);
+                }
+            }
+        }
+
+        function handleTileClick(row, col) {
+            const cellData = board[row][col];
+            
+            if (cellData.matched || cellData.selected || selectedTiles.length >= 2) {
+                return;
+            }
+            
+            cellData.selected = true;
+            selectedTiles.push({row, col});
+            
+            renderBoard();
+            
+            if (selectedTiles.length === 2) {
+                setTimeout(checkMatch, 500);
+            }
+        }
+
+        function checkMatch() {
+            const [tile1, tile2] = selectedTiles;
+            const symbol1 = board[tile1.row][tile1.col].symbol;
+            const symbol2 = board[tile2.row][tile2.col].symbol;
+            
+            if (symbol1 === symbol2) {
+                // 匹配成功
+                board[tile1.row][tile1.col].matched = true;
+                board[tile2.row][tile2.col].matched = true;
+                matchedPairs++;
+                remainingElement.textContent = totalPairs - matchedPairs;
+                
+                if (matchedPairs === totalPairs) {
+                    endGame(true);
+                }
+            } else {
+                // 匹配失败
+                board[tile1.row][tile1.col].selected = false;
+                board[tile2.row][tile2.col].selected = false;
+            }
+            
+            selectedTiles = [];
+            renderBoard();
+        }
+
+        function shuffleBoard() {
+            // 收集所有未匹配的符号
+            const unmatched = [];
+            for (let i = 0; i < gridSize; i++) {
+                for (let j = 0; j < gridSize; j++) {
+                    if (!board[i][j].matched) {
+                        unmatched.push(board[i][j].symbol);
+                    }
+                }
+            }
+            
+            // 打乱符号
+            for (let i = unmatched.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [unmatched[i], unmatched[j]] = [unmatched[j], unmatched[i]];
+            }
+            
+            // 重新分配符号
+            let index = 0;
+            for (let i = 0; i < gridSize; i++) {
+                for (let j = 0; j < gridSize; j++) {
+                    if (!board[i][j].matched) {
+                        board[i][j].symbol = unmatched[index++];
+                        board[i][j].selected = false;
+                    }
+                }
+            }
+            
+            selectedTiles = [];
+            renderBoard();
+        }
+
+        function endGame(won) {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+            }
+            
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            const minutes = Math.floor(elapsed / 60);
+            const seconds = elapsed % 60;
+            const timeStr = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            if (won) {
+                gameOverText.textContent = '恭喜完成！';
+                gameResult.textContent = `用时: ${timeStr}`;
+            } else {
+                gameOverText.textContent = '时间到！';
+                gameResult.textContent = '再试一次吧！';
+            }
+            
+            gameOverElement.style.display = 'block';
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                const minutes = Math.floor(elapsed / 60);
+                const seconds = elapsed % 60;
+                timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                // 根据难度设置时间限制
+                const timeLimit = difficulty === 'easy' ? 300 : 
+                                 difficulty === 'normal' ? 240 : 180;
+                
+                if (elapsed >= timeLimit) {
+                    endGame(false);
+                }
+            }, 1000);
+        }
+
+        function resetGame() {
+            initGame();
+        }
+
+        // 游戏通过难度选择按钮启动
+    </script>
+</body>
+</html>

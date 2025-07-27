@@ -1,0 +1,71 @@
+<svg width="300" height="200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="tile2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#eee4da;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ede0c8;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="tile4" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ede0c8;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f2b179;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="tile8" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f2b179;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f59563;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="tile2048" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#edc22e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ffd700;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="300" height="200" fill="url(#bg)"/>
+  
+  <!-- Game board background -->
+  <rect x="50" y="30" width="200" height="140" rx="10" fill="#bbada0"/>
+  
+  <!-- Game tiles -->
+  <rect x="60" y="40" width="35" height="25" rx="3" fill="url(#tile2)"/>
+  <text x="77.5" y="56" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#776e65">2</text>
+  
+  <rect x="105" y="40" width="35" height="25" rx="3" fill="url(#tile4)"/>
+  <text x="122.5" y="56" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#776e65">4</text>
+  
+  <rect x="150" y="40" width="35" height="25" rx="3" fill="url(#tile8)"/>
+  <text x="167.5" y="56" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#f9f6f2">8</text>
+  
+  <rect x="195" y="40" width="35" height="25" rx="3" fill="#cdc1b4"/>
+  
+  <rect x="60" y="75" width="35" height="25" rx="3" fill="#cdc1b4"/>
+  
+  <rect x="105" y="75" width="35" height="25" rx="3" fill="url(#tile2)"/>
+  <text x="122.5" y="91" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#776e65">2</text>
+  
+  <rect x="150" y="75" width="35" height="25" rx="3" fill="#cdc1b4"/>
+  
+  <rect x="195" y="75" width="35" height="25" rx="3" fill="#cdc1b4"/>
+  
+  <rect x="60" y="110" width="35" height="25" rx="3" fill="#cdc1b4"/>
+  
+  <rect x="105" y="110" width="35" height="25" rx="3" fill="#cdc1b4"/>
+  
+  <rect x="150" y="110" width="35" height="25" rx="3" fill="#cdc1b4"/>
+  
+  <rect x="195" y="110" width="35" height="25" rx="3" fill="url(#tile2048)"/>
+  <text x="212.5" y="126" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#f9f6f2">2048</text>
+  
+  <rect x="60" y="145" width="35" height="25" rx="3" fill="#cdc1b4"/>
+  
+  <rect x="105" y="145" width="35" height="25" rx="3" fill="#cdc1b4"/>
+  
+  <rect x="150" y="145" width="35" height="25" rx="3" fill="#cdc1b4"/>
+  
+  <rect x="195" y="145" width="35" height="25" rx="3" fill="#cdc1b4"/>
+  
+  <!-- Title -->
+  <text x="150" y="190" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="white">2048</text>
+</svg>

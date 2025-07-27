@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>太空射击</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: white;
+        }
+        
+        .game-container {
+            text-align: center;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        h1 {
+            margin: 0 0 20px 0;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            color: #00d4ff;
+        }
+        
+        #gameCanvas {
+            border: 3px solid #00d4ff;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+            background: #000;
+        }
+        
+        .info {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-around;
+            font-size: 1.2em;
+        }
+        
+        .controls {
+            margin-top: 15px;
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+        
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            display: none;
+            border: 2px solid #00d4ff;
+        }
+        
+        button {
+            background: #00d4ff;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        
+        button:hover {
+            background: #0099cc;
+        }
+
+        .difficulty-selector {
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .difficulty-selector h3 {
+            margin-bottom: 15px;
+            color: white;
+        }
+
+        .difficulty-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            margin: 0 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: background 0.3s;
+        }
+
+        .difficulty-btn:hover {
+            background: #2980b9;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>太空射击</h1>
+
+        <!-- 难度选择 -->
+        <div class="difficulty-selector" id="difficultySelector">
+            <h3>选择难度:</h3>
+            <button onclick="startGame('easy')" class="difficulty-btn">简单</button>
+            <button onclick="startGame('normal')" class="difficulty-btn">普通</button>
+            <button onclick="startGame('hard')" class="difficulty-btn">困难</button>
+        </div>
+
+        <canvas id="gameCanvas" width="480" height="640" class="hidden"></canvas>
+        <div class="info hidden" id="gameInfo">
+            <div>分数: <span id="score">0</span></div>
+            <div>生命: <span id="lives">3</span></div>
+            <div>难度: <span id="difficulty">普通</span></div>
+        </div>
+        <div class="controls hidden" id="gameControls">
+            WASD移动，自动射击
+        </div>
+        <div class="game-over" id="gameOver">
+            <h2 id="gameOverText">游戏结束</h2>
+            <p>最终分数: <span id="finalScore">0</span></p>
+            <button onclick="startGame()">重新开始</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreElement = document.getElementById('score');
+        const livesElement = document.getElementById('lives');
+        const difficultyElement = document.getElementById('difficulty');
+        const gameOverElement = document.getElementById('gameOver');
+        const finalScore = document.getElementById('finalScore');
+        const difficultySelector = document.getElementById('difficultySelector');
+        const gameInfo = document.getElementById('gameInfo');
+        const gameControls = document.getElementById('gameControls');
+
+        let game = {
+            score: 0,
+            lives: 3,
+            gameOver: false,
+            difficulty: 'normal'
+        };
+
+        let player = {
+            x: canvas.width / 2 - 15,
+            y: canvas.height - 50,
+            width: 30,
+            height: 30,
+            speed: 5
+        };
+
+        let bullets = [];
+        let enemies = [];
+        let stars = [];
+        let autoShootTimer = 0;
+        let autoShootInterval = 300; // 自动射击间隔（毫秒）
+
+        let keys = {};
+
+        // 创建星星背景
+        function createStars() {
+            stars = [];
+            for (let i = 0; i < 50; i++) {
+                stars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    speed: Math.random() * 2 + 1
+                });
+            }
+        }
+
+        function drawStars() {
+            ctx.fillStyle = '#fff';
+            stars.forEach(star => {
+                ctx.fillRect(star.x, star.y, 1, 1);
+                star.y += star.speed;
+                if (star.y > canvas.height) {
+                    star.y = 0;
+                    star.x = Math.random() * canvas.width;
+                }
+            });
+        }
+
+        function drawPlayer() {
+            ctx.fillStyle = '#00d4ff';
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+            
+            // 绘制飞船细节
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(player.x + 12, player.y - 5, 6, 10);
+        }
+
+        function createBullet() {
+            bullets.push({
+                x: player.x + player.width / 2 - 2,
+                y: player.y,
+                width: 4,
+                height: 10,
+                speed: 8
+            });
+        }
+
+        function drawBullets() {
+            ctx.fillStyle = '#ffff00';
+            bullets.forEach((bullet, index) => {
+                ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                bullet.y -= bullet.speed;
+                
+                if (bullet.y < 0) {
+                    bullets.splice(index, 1);
+                }
+            });
+        }
+
+        function createEnemy() {
+            enemies.push({
+                x: Math.random() * (canvas.width - 30),
+                y: -30,
+                width: 30,
+                height: 30,
+                speed: Math.random() * 3 + 2
+            });
+        }
+
+        function drawEnemies() {
+            ctx.fillStyle = '#ff4757';
+            enemies.forEach((enemy, index) => {
+                ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+                enemy.y += enemy.speed;
+                
+                if (enemy.y > canvas.height) {
+                    enemies.splice(index, 1);
+                }
+            });
+        }
+
+        function checkCollisions() {
+            // 子弹击中敌人
+            bullets.forEach((bullet, bulletIndex) => {
+                enemies.forEach((enemy, enemyIndex) => {
+                    if (bullet.x < enemy.x + enemy.width &&
+                        bullet.x + bullet.width > enemy.x &&
+                        bullet.y < enemy.y + enemy.height &&
+                        bullet.y + bullet.height > enemy.y) {
+                        bullets.splice(bulletIndex, 1);
+                        enemies.splice(enemyIndex, 1);
+                        game.score += 10;
+                        scoreElement.textContent = game.score;
+                    }
+                });
+            });
+
+            // 敌人撞击玩家
+            enemies.forEach((enemy, index) => {
+                if (player.x < enemy.x + enemy.width &&
+                    player.x + player.width > enemy.x &&
+                    player.y < enemy.y + enemy.height &&
+                    player.y + player.height > enemy.y) {
+                    enemies.splice(index, 1);
+                    game.lives--;
+                    livesElement.textContent = game.lives;
+                    
+                    if (game.lives <= 0) {
+                        endGame();
+                    }
+                }
+            });
+        }
+
+        function handleInput() {
+            if (keys['a'] || keys['A']) {
+                player.x -= player.speed;
+            }
+            if (keys['d'] || keys['D']) {
+                player.x += player.speed;
+            }
+            if (keys['w'] || keys['W']) {
+                player.y -= player.speed;
+            }
+            if (keys['s'] || keys['S']) {
+                player.y += player.speed;
+            }
+
+            // 边界检查
+            if (player.x < 0) player.x = 0;
+            if (player.x + player.width > canvas.width) {
+                player.x = canvas.width - player.width;
+            }
+            if (player.y < 0) player.y = 0;
+            if (player.y + player.height > canvas.height) {
+                player.y = canvas.height - player.height;
+            }
+        }
+
+        function endGame() {
+            game.gameOver = true;
+            finalScore.textContent = game.score;
+            gameOverElement.style.display = 'block';
+        }
+
+        function startGame(selectedDifficulty = 'normal') {
+            game.difficulty = selectedDifficulty;
+
+            // 设置难度参数
+            switch(game.difficulty) {
+                case 'easy':
+                    autoShootInterval = 400;
+                    player.speed = 6;
+                    difficultyElement.textContent = '简单';
+                    break;
+                case 'normal':
+                    autoShootInterval = 300;
+                    player.speed = 5;
+                    difficultyElement.textContent = '普通';
+                    break;
+                case 'hard':
+                    autoShootInterval = 200;
+                    player.speed = 4;
+                    difficultyElement.textContent = '困难';
+                    break;
+            }
+
+            // 隐藏难度选择，显示游戏界面
+            difficultySelector.classList.add('hidden');
+            canvas.classList.remove('hidden');
+            gameInfo.classList.remove('hidden');
+            gameControls.classList.remove('hidden');
+
+            game.score = 0;
+            game.lives = 3;
+            game.gameOver = false;
+            autoShootTimer = 0;
+            scoreElement.textContent = game.score;
+            livesElement.textContent = game.lives;
+            gameOverElement.style.display = 'none';
+
+            player.x = canvas.width / 2 - 15;
+            player.y = canvas.height - 50;
+            bullets = [];
+            enemies = [];
+
+            createStars();
+            gameLoop();
+        }
+
+        function gameLoop() {
+            if (game.gameOver) return;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            drawStars();
+            handleInput();
+
+            // 自动射击
+            autoShootTimer += 16; // 假设60fps，每帧约16ms
+            if (autoShootTimer >= autoShootInterval) {
+                createBullet();
+                autoShootTimer = 0;
+            }
+
+            drawPlayer();
+            drawBullets();
+            drawEnemies();
+            checkCollisions();
+
+            // 随机生成敌人（根据难度调整）
+            let enemySpawnRate = game.difficulty === 'easy' ? 0.015 :
+                                game.difficulty === 'normal' ? 0.02 : 0.025;
+            if (Math.random() < enemySpawnRate) {
+                createEnemy();
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // 键盘事件
+        document.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+        });
+
+        document.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+        });
+
+        // 游戏通过难度选择按钮启动
+    </script>
+</body>
+</html>
